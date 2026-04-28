@@ -13,7 +13,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #FCE4BF;
+      background: #C8D0F0;
       overflow: hidden;
       position: relative;
     }
@@ -26,17 +26,9 @@
       overflow: hidden;
     }
 
-    .doodle-bg span {
+    .doodle-bg svg {
       position: absolute;
-      font-size: 28px;
-      opacity: 0.18;
-      animation: float 20s infinite linear;
-    }
-
-    @keyframes float {
-      0% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-30px) rotate(10deg); }
-      100% { transform: translateY(0) rotate(0deg); }
+      opacity: 0.3;
     }
 
     .chat-container {
@@ -66,11 +58,9 @@
       position: absolute;
       bottom: 0; left: 0; right: 0;
       height: 5px;
-      background: repeating-linear-gradient(
-        90deg,
+      background: repeating-linear-gradient(90deg,
         #1DAB87 0px, #1DAB87 20px,
-        #F5943B 20px, #F5943B 40px
-      );
+        #F5943B 20px, #F5943B 40px);
     }
 
     .chat-header h1 {
@@ -154,7 +144,7 @@
       padding: 12px 22px;
       border-radius: 14px;
       border: none;
-      background: linear-gradient(135deg, #1DAB87, #1DAB87);
+      background: #1DAB87;
       color: white;
       font-size: 0.93em;
       font-weight: 700;
@@ -174,10 +164,7 @@
     }
 
     .messages::-webkit-scrollbar { width: 5px; }
-    .messages::-webkit-scrollbar-thumb {
-      background: #FE72A9;
-      border-radius: 3px;
-    }
+    .messages::-webkit-scrollbar-thumb { background: #FE72A9; border-radius: 3px; }
     .messages::-webkit-scrollbar-track { background: transparent; }
 
     @media (max-width: 560px) {
@@ -197,8 +184,7 @@
       <h1>🌴 momoparadise</h1>
       <p>Molecule's upgraded version of somflash (iykyk)</p>
     </div>
-    <div class="messages" id="messages">
-    </div>
+    <div class="messages" id="messages"></div>
     <div class="input-area">
       <input type="text" id="userInput" placeholder="Say hi to momoparadise..." autocomplete="off">
       <button id="sendBtn" onclick="sendMessage()">Send</button>
@@ -206,23 +192,69 @@
   </div>
 
   <script>
-    // Scatter cute doodle icons across the background
+    // SVG line-drawing doodles in pink — no fill, just stroke outlines
     const doodles = [
-      '🦕','🍎','💗','🎉','🍊','🍋','🐬','🌉','🐾','🌳',
-      '☀️','☁️','🦖','🍓','🌸','⭐','🍑','🌺','🎀','🧁',
-      '🦋','🌈','🍒','💫','🐶','🌻','🍍','🫧','✨','🎈'
+      // T-Rex
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 50v-8l-4-6v-8l6-6h8l4-4h6v6l-2 4h4l2 4v6l-4 4v8M24 42h8M36 28l4-2M38 22v2"/></svg>`,
+      // Apple
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 16c-12 0-18 10-18 22s8 14 18 14 18-2 18-14-6-22-18-22zM32 16c0-6 4-10 4-10M28 14c-4-2-6 0-6 0"/></svg>`,
+      // Heart
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 52S12 40 12 26a10 10 0 0120 0 10 10 0 0120 0c0 14-20 26-20 26z"/></svg>`,
+      // Confetti/star
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 8l4 12h12l-10 8 4 12-10-8-10 8 4-12-10-8h12z"/></svg>`,
+      // Orange/fruit
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="36" r="16"/><path d="M32 20v-6M28 16c-2-4 0-6 0-6M36 16c2-4 0-6 0-6"/></svg>`,
+      // Dolphin
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32c4-12 16-16 28-12 4 1 8 4 10 8l-6-2c-2 6-8 10-16 10s-12-2-14-6l-2 2zM46 28l6-8M20 32h0"/></svg>`,
+      // Bridge (SF)
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 44h56M16 44V20M48 44V20M16 20c0-8 16-12 32 0M16 28h32M16 36h32"/></svg>`,
+      // Dog paw
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="32" cy="40" rx="10" ry="8"/><circle cx="22" cy="28" r="5"/><circle cx="42" cy="28" r="5"/><circle cx="16" cy="36" r="4"/><circle cx="48" cy="36" r="4"/></svg>`,
+      // Tree
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 56V32M32 32l-14 14M32 32l14 14M32 24c-10 0-16-8-16-14s6-6 16-6 16 0 16 6-6 14-16 14z"/></svg>`,
+      // Sun
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="10"/><path d="M32 16v-6M32 54v-6M16 32h-6M54 32h-6M21 21l-4-4M47 47l-4-4M43 21l4-4M17 47l4-4"/></svg>`,
+      // Cloud
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 44h32a10 10 0 000-20 14 14 0 00-28 4 8 8 0 00-4 16z"/></svg>`,
+      // Cherry
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="22" cy="46" r="8"/><circle cx="42" cy="46" r="8"/><path d="M22 38c0-14 10-22 10-22M42 38c0-14-10-22-10-22"/></svg>`,
+      // Butterfly
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 20v28M32 32c-8-12-20-12-18-2s14 10 18 2c4 8 20 8 18-2s-10-10-18 2M28 16l-4-6M36 16l4-6"/></svg>`,
+      // Strawberry
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 52c-12 0-18-12-18-22 0-4 8-8 18-8s18 4 18 8c0 10-6 22-18 22zM24 18l8-10 8 10M30 34v4M38 30v4M26 30v4M34 38v4"/></svg>`,
+      // Flower
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="28" r="6"/><circle cx="24" cy="20" r="6"/><circle cx="40" cy="20" r="6"/><circle cx="24" cy="36" r="6"/><circle cx="40" cy="36" r="6"/><path d="M32 40v16"/></svg>`,
+      // Cupcake
+      `<svg viewBox="0 0 64 64" fill="none" stroke="#E8729A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 36h28l-4 20H22zM18 36c0-10 6-16 14-16s14 6 14 16M28 28c0-4 4-8 4-8s4 4 4 8"/></svg>`,
     ];
+
     const bg = document.getElementById('doodleBg');
-    for (let i = 0; i < 40; i++) {
-      const span = document.createElement('span');
-      span.textContent = doodles[Math.floor(Math.random() * doodles.length)];
-      span.style.left = Math.random() * 100 + '%';
-      span.style.top = Math.random() * 100 + '%';
-      span.style.fontSize = (20 + Math.random() * 20) + 'px';
-      span.style.animationDelay = (Math.random() * 20) + 's';
-      span.style.animationDuration = (15 + Math.random() * 15) + 's';
-      span.style.transform = 'rotate(' + (Math.random() * 40 - 20) + 'deg)';
-      bg.appendChild(span);
+    const positions = [];
+
+    for (let i = 0; i < 28; i++) {
+      const div = document.createElement('div');
+      div.style.position = 'absolute';
+      const size = 36 + Math.random() * 24;
+      div.style.width = size + 'px';
+      div.style.height = size + 'px';
+
+      // Spread evenly with some randomness
+      let x, y, tooClose;
+      let attempts = 0;
+      do {
+        x = Math.random() * 96 + 2;
+        y = Math.random() * 96 + 2;
+        tooClose = positions.some(p => Math.abs(p[0]-x)<8 && Math.abs(p[1]-y)<8);
+        attempts++;
+      } while (tooClose && attempts < 20);
+      positions.push([x, y]);
+
+      div.style.left = x + '%';
+      div.style.top = y + '%';
+      div.style.transform = 'rotate(' + (Math.random() * 50 - 25) + 'deg)';
+      div.style.opacity = '0.25';
+      div.innerHTML = doodles[Math.floor(Math.random() * doodles.length)];
+      bg.appendChild(div);
     }
 
     // Chat logic
