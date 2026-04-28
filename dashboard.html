@@ -90,9 +90,22 @@ function renderList(convos) {
         <span class="card-badge">${c.message_count} messages</span>
       </div>
       <div class="card-preview">"${c.preview || '...'}"</div>
-      <div class="card-meta">IP: ${c.ip || 'unknown'}</div>
+      <div class="card-meta">IP: ${c.ip || 'unknown'} <span id="geo-${c.session_id}"></span></div>
     </div>`;
   }).join('');
+  // Lookup locations for each card
+  convos.forEach(c => {
+    if (c.ip && c.ip !== 'unknown') {
+      const ip = c.ip.split(',')[0].trim();
+      fetch('https://ipapi.co/' + ip + '/json/')
+        .then(r => r.json())
+        .then(geo => {
+          const loc = [geo.city, geo.country_name].filter(Boolean).join(', ');
+          const el = document.getElementById('geo-' + c.session_id);
+          if (el && loc) el.textContent = '📍 ' + loc;
+        }).catch(() => {});
+    }
+  });
 }
 
 async function viewConvo(sid) {
@@ -109,12 +122,26 @@ async function viewConvo(sid) {
     `<strong>Session:</strong> ${data.session_id}<br>` +
     `<strong>Started:</strong> ${d1.toLocaleString()}<br>` +
     `<strong>Last active:</strong> ${d2.toLocaleString()}<br>` +
-    `<strong>IP:</strong> ${data.ip || 'unknown'}<br>` +
+    `<strong>IP:</strong> ${data.ip || 'unknown'} <span id="geoInfo">(looking up location...)</span><br>` +
     `<strong>Browser:</strong> ${data.user_agent || 'unknown'}`;
 
   document.getElementById('convoMessages').innerHTML = data.messages.map(m =>
     `<div class="msg ${m.role}"><div class="msg-role">${m.role === 'user' ? 'Visitor' : 'momoparadise'}</div>${m.content}</div>`
   ).join('');
+
+  // Geo lookup
+  if (data.ip && data.ip !== 'unknown') {
+    const ip = data.ip.split(',')[0].trim();
+    fetch('https://ipapi.co/' + ip + '/json/')
+      .then(r => r.json())
+      .then(geo => {
+        const loc = [geo.city, geo.region, geo.country_name].filter(Boolean).join(', ');
+        document.getElementById('geoInfo').textContent = loc ? '📍 ' + loc : '';
+      })
+      .catch(() => { document.getElementById('geoInfo').textContent = ''; });
+  } else {
+    document.getElementById('geoInfo').textContent = '';
+  }
 }
 
 function showList() {
