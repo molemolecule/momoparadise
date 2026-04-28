@@ -6,15 +6,31 @@
   <title>momoparadise — Dashboard</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f4f7; color: #2d2d2d; }
-    .top-bar { background: #DD4470; color: white; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f4f7; color: #2d2d2d; height: 100vh; display: flex; flex-direction: column; }
+
+    .top-bar { background: #DD4470; color: white; padding: 14px 24px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
     .top-bar h1 { font-size: 1.2em; font-weight: 700; }
     .top-bar a { color: rgba(255,255,255,0.7); font-size: 0.85em; text-decoration: none; margin-left: auto; }
+
     .login { max-width: 400px; margin: 80px auto; text-align: center; }
     .login input { padding: 12px 16px; border-radius: 10px; border: 1px solid #ddd; width: 240px; font-size: 0.9em; outline: none; }
     .login input:focus { border-color: #DD4470; }
     .login button { padding: 12px 20px; border-radius: 10px; border: none; background: #DD4470; color: white; font-weight: 600; cursor: pointer; margin-left: 8px; }
-    .container { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+
+    .app { display: none; flex: 1; overflow: hidden; }
+    .app.active { display: flex; }
+
+    /* Sidebar */
+    .sidebar { width: 220px; background: white; border-right: 1px solid #e8e8e8; display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-item { padding: 14px 20px; font-size: 0.9em; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; color: #666; }
+    .nav-item:hover { background: #fdf0f4; color: #DD4470; }
+    .nav-item.active { background: #fdf0f4; color: #DD4470; border-left-color: #DD4470; font-weight: 600; }
+    .nav-icon { margin-right: 8px; }
+
+    /* Main content */
+    .main-content { flex: 1; overflow-y: auto; padding: 24px; }
+
+    /* Cards */
     .card { background: white; border-radius: 14px; padding: 18px 20px; margin-bottom: 12px; cursor: pointer; border: 1px solid #eee; transition: box-shadow 0.2s; }
     .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
     .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -22,8 +38,7 @@
     .card-meta { font-size: 0.75em; color: #bbb; }
     .card-preview { font-size: 0.9em; color: #555; }
     .card-badge { background: #E8EDF8; color: #555; font-size: 0.7em; padding: 3px 8px; border-radius: 6px; }
-    .convo-view { display: none; }
-    .convo-view.active { display: block; }
+
     .back-btn { background: none; border: none; color: #DD4470; font-size: 0.9em; cursor: pointer; font-weight: 600; margin-bottom: 16px; }
     .convo-meta { background: white; border-radius: 14px; padding: 16px 20px; margin-bottom: 16px; border: 1px solid #eee; font-size: 0.8em; color: #888; line-height: 1.8; }
     .msg { padding: 14px 18px; border-radius: 12px; margin-bottom: 8px; font-size: 0.9em; line-height: 1.6; }
@@ -34,6 +49,33 @@
     .msg.assistant .msg-role { color: #1DAB87; }
     .empty { text-align: center; color: #bbb; padding: 60px 0; }
     .hidden { display: none; }
+
+    /* Knowledge editor */
+    .kb-wrap { max-width: 800px; }
+    .kb-wrap label { font-weight: 600; color: #3a3a5c; display: block; margin-bottom: 8px; font-size: 0.9em; }
+    .kb-wrap textarea {
+      width: 100%; height: 500px; padding: 16px; border-radius: 12px;
+      border: 1px solid #ddd; font-family: monospace; font-size: 0.85em;
+      line-height: 1.6; resize: vertical; outline: none; color: #3a3a5c;
+    }
+    .kb-wrap textarea:focus { border-color: #DD4470; }
+    .kb-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .kb-actions button {
+      padding: 10px 20px; border-radius: 10px; border: none;
+      font-size: 0.9em; font-weight: 600; cursor: pointer;
+    }
+    .btn-load { background: #E8EDF8; color: #555; }
+    .btn-save { background: #DD4470; color: white; }
+    .btn-save:hover { background: #c43d65; }
+    .kb-status { margin-top: 10px; font-size: 0.85em; min-height: 20px; }
+    .kb-status.ok { color: #1DAB87; }
+    .kb-status.err { color: #DD4470; }
+
+    @media (max-width: 600px) {
+      .sidebar { width: 60px; }
+      .nav-label { display: none; }
+      .nav-item { padding: 14px; text-align: center; }
+    }
   </style>
 </head>
 <body>
@@ -43,26 +85,53 @@
   </div>
 
   <div class="login" id="loginScreen">
-    <p style="margin-bottom:16px;color:#888;">Enter admin password to view conversations</p>
+    <p style="margin-bottom:16px;color:#888;">Enter admin password</p>
     <input type="password" id="pw" placeholder="Password">
     <button onclick="login()">Go</button>
     <p id="loginErr" style="color:#DD4470;margin-top:12px;font-size:0.85em;"></p>
   </div>
 
-  <div class="container hidden" id="listScreen">
-    <div id="convoList"></div>
-  </div>
-
-  <div class="container hidden" id="convoScreen">
-    <button class="back-btn" onclick="showList()">← Back to all conversations</button>
-    <div class="convo-meta" id="convoMeta"></div>
-    <div id="convoMessages"></div>
+  <div class="app" id="app">
+    <div class="sidebar">
+      <div class="nav-item active" id="navConvos" onclick="showPage('convos')">
+        <span class="nav-icon">💬</span><span class="nav-label">Conversations</span>
+      </div>
+      <div class="nav-item" id="navKnowledge" onclick="showPage('knowledge')">
+        <span class="nav-icon">🧠</span><span class="nav-label">Knowledge</span>
+      </div>
+    </div>
+    <div class="main-content" id="mainContent">
+      <!-- Conversations list -->
+      <div id="pageConvos">
+        <div id="convoList"></div>
+      </div>
+      <!-- Conversation detail -->
+      <div id="pageConvoDetail" class="hidden">
+        <button class="back-btn" onclick="showList()">← Back</button>
+        <div class="convo-meta" id="convoMeta"></div>
+        <div id="convoMessages"></div>
+      </div>
+      <!-- Knowledge editor -->
+      <div id="pageKnowledge" class="hidden">
+        <div class="kb-wrap">
+          <label>Knowledge Base — edit what momoparadise knows about Mo</label>
+          <textarea id="kbText" placeholder="Loading..."></textarea>
+          <div class="kb-actions">
+            <button class="btn-load" onclick="loadKnowledge()">Reload</button>
+            <button class="btn-save" onclick="saveKnowledge()">Save & Deploy</button>
+          </div>
+          <div class="kb-status" id="kbStatus"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
 <script>
 const API = 'https://6okrr4nt3c.execute-api.us-west-2.amazonaws.com';
 let password = '';
 
+// --- Login ---
+document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 async function login() {
   password = document.getElementById('pw').value;
   if (!password) return;
@@ -71,13 +140,28 @@ async function login() {
     const data = await res.json();
     if (data.error) { document.getElementById('loginErr').textContent = data.error; return; }
     document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('listScreen').classList.remove('hidden');
+    document.getElementById('app').classList.add('active');
     renderList(data.conversations);
   } catch (e) { document.getElementById('loginErr').textContent = 'Connection error'; }
 }
 
-document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+// --- Navigation ---
+function showPage(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('pageConvos').classList.add('hidden');
+  document.getElementById('pageConvoDetail').classList.add('hidden');
+  document.getElementById('pageKnowledge').classList.add('hidden');
+  if (page === 'convos') {
+    document.getElementById('navConvos').classList.add('active');
+    document.getElementById('pageConvos').classList.remove('hidden');
+  } else if (page === 'knowledge') {
+    document.getElementById('navKnowledge').classList.add('active');
+    document.getElementById('pageKnowledge').classList.remove('hidden');
+    loadKnowledge();
+  }
+}
 
+// --- Conversations ---
 function renderList(convos) {
   const el = document.getElementById('convoList');
   if (!convos.length) { el.innerHTML = '<div class="empty">No conversations yet</div>'; return; }
@@ -85,25 +169,19 @@ function renderList(convos) {
     const d = new Date(c.created_at);
     const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     return `<div class="card" onclick="viewConvo('${c.session_id}')">
-      <div class="card-top">
-        <span class="card-date">${dateStr}</span>
-        <span class="card-badge">${c.message_count} messages</span>
-      </div>
+      <div class="card-top"><span class="card-date">${dateStr}</span><span class="card-badge">${c.message_count} msgs</span></div>
       <div class="card-preview">"${c.preview || '...'}"</div>
-      <div class="card-meta">IP: ${c.ip || 'unknown'} <span id="geo-${c.session_id}"></span></div>
+      <div class="card-meta">IP: ${c.ip || '?'} <span id="geo-${c.session_id}"></span></div>
     </div>`;
   }).join('');
-  // Lookup locations for each card
   convos.forEach(c => {
     if (c.ip && c.ip !== 'unknown') {
       const ip = c.ip.split(',')[0].trim();
-      fetch('https://ipapi.co/' + ip + '/json/')
-        .then(r => r.json())
-        .then(geo => {
-          const loc = [geo.city, geo.country_name].filter(Boolean).join(', ');
-          const el = document.getElementById('geo-' + c.session_id);
-          if (el && loc) el.textContent = '📍 ' + loc;
-        }).catch(() => {});
+      fetch('https://ipapi.co/' + ip + '/json/').then(r => r.json()).then(geo => {
+        const loc = [geo.city, geo.country_name].filter(Boolean).join(', ');
+        const el = document.getElementById('geo-' + c.session_id);
+        if (el && loc) el.textContent = '📍 ' + loc;
+      }).catch(() => {});
     }
   });
 }
@@ -112,41 +190,60 @@ async function viewConvo(sid) {
   const res = await fetch(API + '/admin/conversation/' + sid + '?pw=' + encodeURIComponent(password));
   const data = await res.json();
   if (data.error) return;
-
-  document.getElementById('listScreen').classList.add('hidden');
-  document.getElementById('convoScreen').classList.remove('hidden');
-
-  const d1 = new Date(data.created_at);
-  const d2 = new Date(data.updated_at);
+  document.getElementById('pageConvos').classList.add('hidden');
+  document.getElementById('pageConvoDetail').classList.remove('hidden');
+  const d1 = new Date(data.created_at), d2 = new Date(data.updated_at);
   document.getElementById('convoMeta').innerHTML =
     `<strong>Session:</strong> ${data.session_id}<br>` +
     `<strong>Started:</strong> ${d1.toLocaleString()}<br>` +
     `<strong>Last active:</strong> ${d2.toLocaleString()}<br>` +
-    `<strong>IP:</strong> ${data.ip || 'unknown'} <span id="geoInfo">(looking up location...)</span><br>` +
-    `<strong>Browser:</strong> ${data.user_agent || 'unknown'}`;
-
+    `<strong>IP:</strong> ${data.ip || '?'} <span id="geoInfo"></span><br>` +
+    `<strong>Browser:</strong> ${data.user_agent || '?'}`;
   document.getElementById('convoMessages').innerHTML = data.messages.map(m =>
     `<div class="msg ${m.role}"><div class="msg-role">${m.role === 'user' ? 'Visitor' : 'momoparadise'}</div>${m.content}</div>`
   ).join('');
-
-  // Geo lookup
   if (data.ip && data.ip !== 'unknown') {
-    const ip = data.ip.split(',')[0].trim();
-    fetch('https://ipapi.co/' + ip + '/json/')
-      .then(r => r.json())
-      .then(geo => {
-        const loc = [geo.city, geo.region, geo.country_name].filter(Boolean).join(', ');
-        document.getElementById('geoInfo').textContent = loc ? '📍 ' + loc : '';
-      })
-      .catch(() => { document.getElementById('geoInfo').textContent = ''; });
-  } else {
-    document.getElementById('geoInfo').textContent = '';
+    fetch('https://ipapi.co/' + data.ip.split(',')[0].trim() + '/json/').then(r => r.json()).then(geo => {
+      const loc = [geo.city, geo.region, geo.country_name].filter(Boolean).join(', ');
+      document.getElementById('geoInfo').textContent = loc ? '📍 ' + loc : '';
+    }).catch(() => {});
   }
 }
 
 function showList() {
-  document.getElementById('convoScreen').classList.add('hidden');
-  document.getElementById('listScreen').classList.remove('hidden');
+  document.getElementById('pageConvoDetail').classList.add('hidden');
+  document.getElementById('pageConvos').classList.remove('hidden');
+}
+
+// --- Knowledge ---
+async function loadKnowledge() {
+  setKbStatus('Loading...', false);
+  try {
+    const res = await fetch(API + '/admin/knowledge?pw=' + encodeURIComponent(password));
+    const data = await res.json();
+    if (data.error) { setKbStatus(data.error, true); return; }
+    document.getElementById('kbText').value = data.knowledge;
+    setKbStatus('Loaded!', false);
+  } catch (e) { setKbStatus('Failed to load', true); }
+}
+
+async function saveKnowledge() {
+  setKbStatus('Saving...', false);
+  try {
+    const res = await fetch(API + '/admin/knowledge', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password, knowledge: document.getElementById('kbText').value }),
+    });
+    const data = await res.json();
+    if (data.error) { setKbStatus(data.error, true); return; }
+    setKbStatus('Saved & deployed! Changes are live.', false);
+  } catch (e) { setKbStatus('Failed to save', true); }
+}
+
+function setKbStatus(msg, isErr) {
+  const el = document.getElementById('kbStatus');
+  el.textContent = msg;
+  el.className = 'kb-status ' + (isErr ? 'err' : 'ok');
 }
 </script>
 </body>
