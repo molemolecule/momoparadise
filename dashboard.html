@@ -99,6 +99,9 @@
       <div class="nav-item" id="navKnowledge" onclick="showPage('knowledge')">
         <span class="nav-icon">🧠</span><span class="nav-label">Knowledge</span>
       </div>
+      <div class="nav-item" id="navPrompt" onclick="showPage('prompt')">
+        <span class="nav-icon">✏️</span><span class="nav-label">System Prompt</span>
+      </div>
     </div>
     <div class="main-content" id="mainContent">
       <!-- Conversations list -->
@@ -124,6 +127,18 @@
             <button class="btn-save" onclick="saveKnowledge()">Save & Deploy</button>
           </div>
           <div class="kb-status" id="kbStatus"></div>
+        </div>
+      </div>
+      <!-- System Prompt editor -->
+      <div id="pagePrompt" class="hidden">
+        <div class="kb-wrap">
+          <label>System Prompt — controls how momoparadise behaves and responds</label>
+          <textarea id="promptText" placeholder="Loading..."></textarea>
+          <div class="kb-actions">
+            <button class="btn-load" onclick="loadPrompt()">Reload</button>
+            <button class="btn-save" onclick="savePrompt()">Save & Deploy</button>
+          </div>
+          <div class="kb-status" id="promptStatus"></div>
         </div>
       </div>
     </div>
@@ -154,6 +169,7 @@ function showPage(page) {
   document.getElementById('pageConvos').classList.add('hidden');
   document.getElementById('pageConvoDetail').classList.add('hidden');
   document.getElementById('pageKnowledge').classList.add('hidden');
+  document.getElementById('pagePrompt').classList.add('hidden');
   if (page === 'convos') {
     document.getElementById('navConvos').classList.add('active');
     document.getElementById('pageConvos').classList.remove('hidden');
@@ -161,6 +177,10 @@ function showPage(page) {
     document.getElementById('navKnowledge').classList.add('active');
     document.getElementById('pageKnowledge').classList.remove('hidden');
     loadKnowledge();
+  } else if (page === 'prompt') {
+    document.getElementById('navPrompt').classList.add('active');
+    document.getElementById('pagePrompt').classList.remove('hidden');
+    loadPrompt();
   }
 }
 
@@ -262,6 +282,37 @@ async function saveKnowledge() {
 
 function setKbStatus(msg, isErr) {
   const el = document.getElementById('kbStatus');
+  el.textContent = msg;
+  el.className = 'kb-status ' + (isErr ? 'err' : 'ok');
+}
+
+// --- System Prompt ---
+async function loadPrompt() {
+  setPromptStatus('Loading...', false);
+  try {
+    const res = await fetch(API + '/admin/prompt?pw=' + encodeURIComponent(password));
+    const data = await res.json();
+    if (data.error) { setPromptStatus(data.error, true); return; }
+    document.getElementById('promptText').value = data.prompt;
+    setPromptStatus('Loaded!', false);
+  } catch (e) { setPromptStatus('Failed to load', true); }
+}
+
+async function savePrompt() {
+  setPromptStatus('Saving...', false);
+  try {
+    const res = await fetch(API + '/admin/prompt', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password, prompt: document.getElementById('promptText').value }),
+    });
+    const data = await res.json();
+    if (data.error) { setPromptStatus(data.error, true); return; }
+    setPromptStatus('Saved & deployed! Changes are live.', false);
+  } catch (e) { setPromptStatus('Failed to save', true); }
+}
+
+function setPromptStatus(msg, isErr) {
+  const el = document.getElementById('promptStatus');
   el.textContent = msg;
   el.className = 'kb-status ' + (isErr ? 'err' : 'ok');
 }
