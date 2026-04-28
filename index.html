@@ -3,169 +3,124 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>momoparadise — Mo's Chatbot</title>
+  <title>momoparadise</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #C8D0F0;
-      overflow: hidden;
+      height: 100vh; display: flex; background: #f9f9f9; color: #2d2d2d;
     }
-    .doodle-bg {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none; z-index: 0;
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px; background: #DD4470; color: white;
+      display: flex; flex-direction: column; padding: 24px 20px;
+      flex-shrink: 0;
     }
-    .doodle {
-      position: absolute;
+    .sidebar h1 { font-size: 1.3em; font-weight: 800; margin-bottom: 4px; }
+    .sidebar p { font-size: 0.75em; opacity: 0.7; line-height: 1.4; }
+    .sidebar .new-chat {
+      margin-top: 24px; padding: 10px 14px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.3); background: transparent;
+      color: white; font-size: 0.85em; cursor: pointer; text-align: left;
+      transition: background 0.2s;
     }
-    .doodle svg {
-      width: 100%; height: 100%;
-    }
-    .chat-container {
-      width: 100%; max-width: 520px; height: 88vh;
-      background: rgba(255,255,255,0.95);
-      border-radius: 28px; border: 3px solid #FE72A9;
-      display: flex; flex-direction: column; overflow: hidden;
-      box-shadow: 0 24px 64px rgba(221,68,112,0.18);
-      position: relative; z-index: 1;
-    }
-    .chat-header {
-      padding: 20px; text-align: center;
-      background: linear-gradient(135deg, #DD4470, #FE72A9);
-      position: relative;
-    }
-    .chat-header::after {
-      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 5px;
-      background: repeating-linear-gradient(90deg, #1DAB87 0px, #1DAB87 20px, #F5943B 20px, #F5943B 40px);
-    }
-    .chat-header h1 { font-size: 1.6em; font-weight: 800; color: white; letter-spacing: 1px; }
-    .chat-header p { font-size: 0.8em; color: rgba(255,255,255,0.85); margin-top: 4px; }
+    .sidebar .new-chat:hover { background: rgba(255,255,255,0.15); }
+    .sidebar .spacer { flex: 1; }
+    .sidebar .footer { font-size: 0.7em; opacity: 0.5; }
+    .sidebar .footer a { color: white; }
+
+    /* Main area */
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
     .messages {
-      flex: 1; overflow-y: auto; padding: 20px;
-      display: flex; flex-direction: column; gap: 12px; background: #FFFAF5;
+      flex: 1; overflow-y: auto; padding: 0;
     }
-    .message {
-      max-width: 80%; padding: 12px 16px; border-radius: 18px;
-      line-height: 1.55; font-size: 0.93em; word-wrap: break-word;
+    .msg-row {
+      padding: 24px 0; border-bottom: 1px solid #f0f0f0;
     }
-    .message.user {
-      align-self: flex-end;
-      background: linear-gradient(135deg, #DD4470, #FE72A9);
-      color: white; border-bottom-right-radius: 4px;
+    .msg-row:last-child { border-bottom: none; }
+    .msg-row.assistant { background: #f7f7f8; }
+    .msg-inner {
+      max-width: 680px; margin: 0 auto; padding: 0 24px;
+      font-size: 0.95em; line-height: 1.7;
     }
-    .message.assistant {
-      align-self: flex-start; background: #E8EDF8; color: #3a3a5c;
-      border-bottom-left-radius: 4px; border-left: 3px solid #B8C4E8;
+    .msg-row.user .msg-inner { font-weight: 500; }
+    .msg-row.typing .msg-inner { color: #999; font-style: italic; }
+    .msg-label {
+      font-size: 0.75em; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 6px; color: #999;
     }
-    .message.typing {
-      align-self: flex-start; background: #E8EDF8; color: #8890a8; font-style: italic;
-    }
+    .msg-row.user .msg-label { color: #DD4470; }
+    .msg-row.assistant .msg-label { color: #1DAB87; }
+
+    /* Input */
     .input-area {
-      padding: 14px 16px; display: flex; gap: 10px;
-      background: white; border-top: 3px solid #1DAB87;
+      border-top: 1px solid #e8e8e8; padding: 16px 24px; background: white;
     }
-    .input-area input {
-      flex: 1; padding: 12px 16px; border-radius: 14px;
-      border: 2px solid #E8EDF8; background: #FAFBFF; color: #3a3a5c;
-      font-size: 0.93em; outline: none; transition: border-color 0.2s;
+    .input-wrap {
+      max-width: 680px; margin: 0 auto; display: flex; gap: 10px;
     }
-    .input-area input::placeholder { color: #b0b8d0; }
-    .input-area input:focus { border-color: #FE72A9; }
-    .input-area button {
-      padding: 12px 22px; border-radius: 14px; border: none;
-      background: #1DAB87; color: white; font-size: 0.93em; font-weight: 700;
-      cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+    .input-wrap input {
+      flex: 1; padding: 14px 18px; border-radius: 12px;
+      border: 1px solid #ddd; font-size: 0.93em; outline: none;
+      background: #f9f9f9; transition: border-color 0.2s;
     }
-    .input-area button:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(29,171,135,0.35); }
-    .input-area button:disabled { background: #c8d0d8; cursor: not-allowed; transform: none; box-shadow: none; }
-    .messages::-webkit-scrollbar { width: 5px; }
-    .messages::-webkit-scrollbar-thumb { background: #FE72A9; border-radius: 3px; }
-    @media (max-width: 560px) {
-      .chat-container { max-width: 100%; height: 100vh; border-radius: 0; border: none; }
+    .input-wrap input:focus { border-color: #DD4470; background: white; }
+    .input-wrap input::placeholder { color: #bbb; }
+    .input-wrap button {
+      padding: 14px 24px; border-radius: 12px; border: none;
+      background: #DD4470; color: white; font-size: 0.93em;
+      font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .input-wrap button:hover { background: #c43d65; }
+    .input-wrap button:disabled { background: #ddd; cursor: not-allowed; }
+
+    .messages::-webkit-scrollbar { width: 6px; }
+    .messages::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+
+    /* Mobile */
+    @media (max-width: 700px) {
+      .sidebar { display: none; }
+      .msg-inner, .input-wrap { padding: 0 16px; }
     }
   </style>
 </head>
 <body>
-<div class="doodle-bg" id="doodleBg"></div>
-<div class="chat-container">
-  <div class="chat-header">
+  <div class="sidebar">
     <h1>🌴 momoparadise</h1>
-    <p>Molecule's upgraded version of somflash (iykyk)</p>
+    <p>Molecule's upgraded somflash (iykyk)</p>
+    <button class="new-chat" onclick="clearChat()">+ New chat</button>
+    <div class="spacer"></div>
+    <div class="footer">
+      Powered by Amazon Nova
+      <br><a href="https://www.linkedin.com/in/monapasorn/" target="_blank">Mo's LinkedIn</a>
+    </div>
   </div>
-  <div class="messages" id="messages"></div>
-  <div class="input-area">
-    <input type="text" id="userInput" placeholder="Say hi to momoparadise..." autocomplete="off">
-    <button id="sendBtn" onclick="sendMessage()">Send</button>
+  <div class="main">
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <div class="input-wrap">
+        <input type="text" id="userInput" placeholder="Message momoparadise..." autocomplete="off">
+        <button id="sendBtn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
   </div>
-</div>
-<script>
-const S = [
-// Heart
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`,
-// Star
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-// Sun
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
-// Cloud
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>`,
-// Tree
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V8M7 12l5-10 5 10M5 18l7-6 7 6"/></svg>`,
-// Flower
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2a4 4 0 014 4 4 4 0 014 4 4 4 0 01-4 4 4 4 0 01-4 4 4 4 0 01-4-4 4 4 0 01-4-4 4 4 0 014-4 4 4 0 014-4z"/></svg>`,
-// Apple
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4c-4 0-8 4-8 10s4 8 8 8 8-2 8-8-4-10-8-10z"/><path d="M12 4c0-2 2-4 2-4"/><path d="M10 3c-2-1-4 0-4 0"/></svg>`,
-// Paw
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="17" rx="5" ry="4"/><circle cx="7" cy="10" r="2.5"/><circle cx="17" cy="10" r="2.5"/><circle cx="4.5" cy="14" r="2"/><circle cx="19.5" cy="14" r="2"/></svg>`,
-// Dolphin
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14c2-6 8-8 14-6 2 1 4 2 5 4l-3-1c-1 3-4 5-8 5s-6-1-7-3z"/><path d="M21 12l3-4M9 14h0"/></svg>`,
-// Bridge
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="18" x2="23" y2="18"/><line x1="6" y1="18" x2="6" y2="8"/><line x1="18" y1="18" x2="18" y2="8"/><path d="M6 8c0-4 6-6 12 0"/><line x1="6" y1="11" x2="18" y2="11"/><line x1="6" y1="14" x2="18" y2="14"/></svg>`,
-// Confetti
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l8-16 2 6 6 2z"/><path d="M14 10l4-4M16 18l2-2M20 14l2-1"/></svg>`,
-// Cherry
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="18" r="4"/><circle cx="16" cy="18" r="4"/><path d="M8 14C8 6 12 2 12 2s4 4 4 12"/></svg>`,
-// Butterfly
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v14"/><path d="M12 12c-4-6-10-6-9-1s7 5 9 1c2 4 10 4 9-1s-5-5-9 1"/><path d="M10 5l-2-3M14 5l2-3"/></svg>`,
-// Cupcake
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 14h10l-2 8H9z"/><path d="M7 14c0-4 2-6 5-6s5 2 5 6"/><path d="M10 10c0-2 2-4 2-4s2 2 2 4"/></svg>`,
-// Strawberry
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c-6 0-8-6-8-10 0-2 4-4 8-4s8 2 8 4c0 4-2 10-8 10z"/><path d="M9 6l3-4 3 4"/><line x1="10" y1="13" x2="10" y2="15"/><line x1="14" y1="11" x2="14" y2="13"/><line x1="12" y1="16" x2="12" y2="18"/></svg>`,
-// Dino
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#E8729A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20v-4l-2-3v-3l3-3h4l2-2h3v3l-1 2h2l1 2v3l-2 2v4"/><line x1="10" y1="16" x2="14" y2="16"/><circle cx="16" cy="8" r="0.5"/></svg>`,
-];
-const bg = document.getElementById('doodleBg');
-const placed = [];
-for (let i = 0; i < 30; i++) {
-  const d = document.createElement('div');
-  d.className = 'doodle';
-  const sz = 40 + Math.random() * 30;
-  d.style.width = sz + 'px';
-  d.style.height = sz + 'px';
-  let x, y, ok, tries = 0;
-  do {
-    x = Math.random() * 94 + 3;
-    y = Math.random() * 94 + 3;
-    ok = !placed.some(p => Math.abs(p[0]-x) < 7 && Math.abs(p[1]-y) < 7);
-    tries++;
-  } while (!ok && tries < 30);
-  placed.push([x, y]);
-  d.style.left = x + '%';
-  d.style.top = y + '%';
-  d.style.transform = 'rotate(' + (Math.random() * 60 - 30) + 'deg)';
-  d.style.opacity = '0.55';
-  d.innerHTML = S[Math.floor(Math.random() * S.length)];
-  bg.appendChild(d);
-}
 
+<script>
 let chatHistory = [];
 const input = document.getElementById('userInput');
 const messagesDiv = document.getElementById('messages');
 const sendBtn = document.getElementById('sendBtn');
-input.addEventListener('keydown', e => { if (e.key === 'Enter' && !sendBtn.disabled) sendMessage(); });
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !sendBtn.disabled) sendMessage();
+});
+
+function clearChat() {
+  chatHistory = [];
+  messagesDiv.innerHTML = '';
+}
 
 async function sendMessage() {
   const text = input.value.trim();
@@ -182,24 +137,31 @@ async function sendMessage() {
     });
     const data = await res.json();
     typ.remove();
-    if (data.error) { addMessage('Oops, something went wrong. Try again?', 'assistant'); }
-    else {
+    if (data.error) {
+      addMessage('Oops, something went wrong. Try again?', 'assistant');
+    } else {
       chatHistory.push({ role: 'user', content: text });
       chatHistory.push({ role: 'assistant', content: data.response });
       addMessage(data.response, 'assistant');
     }
-  } catch (err) { typ.remove(); addMessage('Connection error — try again in a sec.', 'assistant'); }
+  } catch (err) {
+    typ.remove();
+    addMessage('Connection error — try again in a sec.', 'assistant');
+  }
   sendBtn.disabled = false;
   input.focus();
 }
 
 function addMessage(text, type) {
-  const div = document.createElement('div');
-  div.className = 'message ' + type;
-  div.textContent = text;
-  messagesDiv.appendChild(div);
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + type;
+  const label = type === 'user' ? 'You' : type === 'typing' ? '' : 'momoparadise';
+  row.innerHTML = '<div class="msg-inner">'
+    + (label ? '<div class="msg-label">' + label + '</div>' : '')
+    + '<div>' + text + '</div></div>';
+  messagesDiv.appendChild(row);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  return div;
+  return row;
 }
 </script>
 </body>
