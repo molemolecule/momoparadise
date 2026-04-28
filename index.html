@@ -9,41 +9,60 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      color: #e0e0e0;
+      background: repeating-linear-gradient(
+        90deg,
+        #FE72A9 0px, #FE72A9 48px,
+        #B8C4E8 48px, #B8C4E8 96px
+      );
+      background-size: 96px 100%;
     }
 
     .chat-container {
       width: 100%;
-      max-width: 600px;
-      height: 90vh;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      max-width: 520px;
+      height: 88vh;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 28px;
+      border: 4px solid #FE72A9;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      box-shadow: 0 24px 64px rgba(221, 68, 112, 0.25);
     }
 
     .chat-header {
       padding: 20px;
       text-align: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: linear-gradient(135deg, #DD4470, #FE72A9);
+      position: relative;
+    }
+
+    .chat-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 6px;
+      background: repeating-linear-gradient(
+        90deg,
+        #1DAB87 0px, #1DAB87 20px,
+        #F5943B 20px, #F5943B 40px
+      );
     }
 
     .chat-header h1 {
-      font-size: 1.4em;
-      color: #e8b4f8;
+      font-size: 1.6em;
+      font-weight: 800;
+      color: white;
+      letter-spacing: 1px;
     }
 
     .chat-header p {
-      font-size: 0.85em;
-      color: #aaa;
+      font-size: 0.8em;
+      color: rgba(255,255,255,0.85);
       margin-top: 4px;
     }
 
@@ -54,77 +73,100 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      background: #FFFAF5;
     }
 
     .message {
       max-width: 80%;
       padding: 12px 16px;
-      border-radius: 16px;
-      line-height: 1.5;
-      font-size: 0.95em;
+      border-radius: 18px;
+      line-height: 1.55;
+      font-size: 0.93em;
       word-wrap: break-word;
     }
 
     .message.user {
       align-self: flex-end;
-      background: #533483;
-      color: #fff;
+      background: linear-gradient(135deg, #DD4470, #FE72A9);
+      color: white;
       border-bottom-right-radius: 4px;
     }
 
     .message.assistant {
       align-self: flex-start;
-      background: rgba(255, 255, 255, 0.1);
-      color: #e0e0e0;
+      background: #E8EDF8;
+      color: #3a3a5c;
       border-bottom-left-radius: 4px;
+      border-left: 3px solid #B8C4E8;
     }
 
     .message.typing {
       align-self: flex-start;
-      background: rgba(255, 255, 255, 0.1);
-      color: #aaa;
+      background: #E8EDF8;
+      color: #8890a8;
       font-style: italic;
     }
 
     .input-area {
-      padding: 16px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 14px 16px;
       display: flex;
       gap: 10px;
+      background: white;
+      border-top: 3px solid #1DAB87;
     }
 
     .input-area input {
       flex: 1;
       padding: 12px 16px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-      font-size: 0.95em;
+      border-radius: 14px;
+      border: 2px solid #E8EDF8;
+      background: #FAFBFF;
+      color: #3a3a5c;
+      font-size: 0.93em;
       outline: none;
+      transition: border-color 0.2s;
     }
 
-    .input-area input::placeholder { color: #888; }
-    .input-area input:focus { border-color: #e8b4f8; }
+    .input-area input::placeholder { color: #b0b8d0; }
+    .input-area input:focus { border-color: #FE72A9; }
 
     .input-area button {
-      padding: 12px 20px;
-      border-radius: 12px;
+      padding: 12px 22px;
+      border-radius: 14px;
       border: none;
-      background: #533483;
-      color: #fff;
-      font-size: 0.95em;
+      background: linear-gradient(135deg, #1DAB87, #1DAB87);
+      color: white;
+      font-size: 0.93em;
+      font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: transform 0.15s, box-shadow 0.15s;
     }
 
-    .input-area button:hover { background: #6b44a0; }
-    .input-area button:disabled { background: #333; cursor: not-allowed; }
+    .input-area button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(29, 171, 135, 0.35);
+    }
+    .input-area button:disabled {
+      background: #c8d0d8;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
 
-    .messages::-webkit-scrollbar { width: 6px; }
+    .messages::-webkit-scrollbar { width: 5px; }
     .messages::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.2);
+      background: #FE72A9;
       border-radius: 3px;
+    }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+
+    @media (max-width: 560px) {
+      .chat-container {
+        max-width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+      }
     }
   </style>
 </head>
@@ -137,18 +179,16 @@
     <div class="messages" id="messages">
     </div>
     <div class="input-area">
-      <input type="text" id="userInput" placeholder="Type a message..." autocomplete="off">
+      <input type="text" id="userInput" placeholder="Say hi to momoparadise..." autocomplete="off">
       <button id="sendBtn" onclick="sendMessage()">Send</button>
     </div>
   </div>
 
   <script>
-    let sessionId = null;
+    let chatHistory = [];
     const input = document.getElementById('userInput');
     const messagesDiv = document.getElementById('messages');
     const sendBtn = document.getElementById('sendBtn');
-
-    let chatHistory = [];
 
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !sendBtn.disabled) sendMessage();
