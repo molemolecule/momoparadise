@@ -198,6 +198,16 @@ async function doSend(text) {
   chatInput.focus();
 }
 
+function formatText(text) {
+  // Convert markdown links [text](url) to clickable links
+  let html = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
+    '<a href="$2" target="_blank" style="color:#DD4470;text-decoration:underline;">$1</a>');
+  // Convert raw URLs to clickable links
+  html = html.replace(/(^|[^"'])(https?:\/\/[^\s<]+)/g,
+    '$1<a href="$2" target="_blank" style="color:#DD4470;text-decoration:underline;">$2</a>');
+  return html;
+}
+
 function addMessage(text, type) {
   const row = document.createElement('div');
   row.className = 'msg-row ' + type;
@@ -215,7 +225,7 @@ function addMessage(text, type) {
     + avatar
     + '<div class="msg-body">'
     + (label ? '<div class="msg-label">' + label + '</div>' : '')
-    + '<div class="msg-text">' + text + '</div>'
+    + '<div class="msg-text">' + formatText(text) + '</div>'
     + '</div></div>';
 
   messagesDiv.appendChild(row);
