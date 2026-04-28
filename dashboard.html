@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>momoparadise — Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f4f7; color: #2d2d2d; }
+    .top-bar { background: #DD4470; color: white; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+    .top-bar h1 { font-size: 1.2em; font-weight: 700; }
+    .top-bar a { color: rgba(255,255,255,0.7); font-size: 0.85em; text-decoration: none; margin-left: auto; }
+    .login { max-width: 400px; margin: 80px auto; text-align: center; }
+    .login input { padding: 12px 16px; border-radius: 10px; border: 1px solid #ddd; width: 240px; font-size: 0.9em; outline: none; }
+    .login input:focus { border-color: #DD4470; }
+    .login button { padding: 12px 20px; border-radius: 10px; border: none; background: #DD4470; color: white; font-weight: 600; cursor: pointer; margin-left: 8px; }
+    .container { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+    .card { background: white; border-radius: 14px; padding: 18px 20px; margin-bottom: 12px; cursor: pointer; border: 1px solid #eee; transition: box-shadow 0.2s; }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .card-date { font-size: 0.8em; color: #999; }
+    .card-meta { font-size: 0.75em; color: #bbb; }
+    .card-preview { font-size: 0.9em; color: #555; }
+    .card-badge { background: #E8EDF8; color: #555; font-size: 0.7em; padding: 3px 8px; border-radius: 6px; }
+    .convo-view { display: none; }
+    .convo-view.active { display: block; }
+    .back-btn { background: none; border: none; color: #DD4470; font-size: 0.9em; cursor: pointer; font-weight: 600; margin-bottom: 16px; }
+    .convo-meta { background: white; border-radius: 14px; padding: 16px 20px; margin-bottom: 16px; border: 1px solid #eee; font-size: 0.8em; color: #888; line-height: 1.8; }
+    .msg { padding: 14px 18px; border-radius: 12px; margin-bottom: 8px; font-size: 0.9em; line-height: 1.6; }
+    .msg.user { background: #fdf0f4; border-left: 3px solid #DD4470; }
+    .msg.assistant { background: #f0f4fd; border-left: 3px solid #1DAB87; }
+    .msg-role { font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .msg.user .msg-role { color: #DD4470; }
+    .msg.assistant .msg-role { color: #1DAB87; }
+    .empty { text-align: center; color: #bbb; padding: 60px 0; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <h1>🌴 momoparadise dashboard</h1>
+    <a href="index.html">← back to chat</a>
+  </div>
+
+  <div class="login" id="loginScreen">
+    <p style="margin-bottom:16px;color:#888;">Enter admin password to view conversations</p>
+    <input type="password" id="pw" placeholder="Password">
+    <button onclick="login()">Go</button>
+    <p id="loginErr" style="color:#DD4470;margin-top:12px;font-size:0.85em;"></p>
+  </div>
+
+  <div class="container hidden" id="listScreen">
+    <div id="convoList"></div>
+  </div>
+
+  <div class="container hidden" id="convoScreen">
+    <button class="back-btn" onclick="showList()">← Back to all conversations</button>
+    <div class="convo-meta" id="convoMeta"></div>
+    <div id="convoMessages"></div>
+  </div>
+
+<script>
+const API = 'https://6okrr4nt3c.execute-api.us-west-2.amazonaws.com';
+let password = '';
+
+async function login() {
+  password = document.getElementById('pw').value;
+  if (!password) return;
+  try {
+    const res = await fetch(API + '/admin/conversations?pw=' + encodeURIComponent(password));
+    const data = await res.json();
+    if (data.error) { document.getElementById('loginErr').textContent = data.error; return; }
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('listScreen').classList.remove('hidden');
+    renderList(data.conversations);
+  } catch (e) { document.getElementById('loginErr').textContent = 'Connection error'; }
+}
+
+document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+function renderList(convos) {
+  const el = document.getElementById('convoList');
+  if (!convos.length) { el.innerHTML = '<div class="empty">No conversations yet</div>'; return; }
+  el.innerHTML = convos.map(c => {
+    const d = new Date(c.created_at);
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return `<div class="card" onclick="viewConvo('${c.session_id}')">
+      <div class="card-top">
+        <span class="card-date">${dateStr}</span>
+        <span class="card-badge">${c.message_count} messages</span>
+      </div>
+      <div class="card-preview">"${c.preview || '...'}"</div>
+      <div class="card-meta">IP: ${c.ip || 'unknown'}</div>
+    </div>`;
+  }).join('');
+}
+
+async function viewConvo(sid) {
+  const res = await fetch(API + '/admin/conversation/' + sid + '?pw=' + encodeURIComponent(password));
+  const data = await res.json();
+  if (data.error) return;
+
+  document.getElementById('listScreen').classList.add('hidden');
+  document.getElementById('convoScreen').classList.remove('hidden');
+
+  const d1 = new Date(data.created_at);
+  const d2 = new Date(data.updated_at);
+  document.getElementById('convoMeta').innerHTML =
+    `<strong>Session:</strong> ${data.session_id}<br>` +
+    `<strong>Started:</strong> ${d1.toLocaleString()}<br>` +
+    `<strong>Last active:</strong> ${d2.toLocaleString()}<br>` +
+    `<strong>IP:</strong> ${data.ip || 'unknown'}<br>` +
+    `<strong>Browser:</strong> ${data.user_agent || 'unknown'}`;
+
+  document.getElementById('convoMessages').innerHTML = data.messages.map(m =>
+    `<div class="msg ${m.role}"><div class="msg-role">${m.role === 'user' ? 'Visitor' : 'momoparadise'}</div>${m.content}</div>`
+  ).join('');
+}
+
+function showList() {
+  document.getElementById('convoScreen').classList.add('hidden');
+  document.getElementById('listScreen').classList.remove('hidden');
+}
+</script>
+</body>
+</html>

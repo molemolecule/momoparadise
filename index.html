@@ -140,6 +140,7 @@
 const USER_SVG = '<svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z"/></svg>';
 
 let chatHistory = [];
+let sessionId = null;
 const welcomeEl = document.getElementById('welcome');
 const chatScreen = document.getElementById('chatScreen');
 const welcomeInput = document.getElementById('welcomeInput');
@@ -179,7 +180,7 @@ async function doSend(text) {
     const res = await fetch('https://6okrr4nt3c.execute-api.us-west-2.amazonaws.com/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, messages: chatHistory }),
+      body: JSON.stringify({ message: text, messages: chatHistory, session_id: sessionId }),
     });
     const data = await res.json();
     typ.remove();
@@ -188,6 +189,7 @@ async function doSend(text) {
     } else {
       chatHistory.push({ role: 'user', content: text });
       chatHistory.push({ role: 'assistant', content: data.response });
+      if (data.session_id) sessionId = data.session_id;
       addMessage(data.response, 'assistant');
     }
   } catch (err) {
