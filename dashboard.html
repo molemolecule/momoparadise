@@ -107,7 +107,10 @@
       </div>
       <!-- Conversation detail -->
       <div id="pageConvoDetail" class="hidden">
-        <button class="back-btn" onclick="showList()">← Back</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <button class="back-btn" onclick="showList()" style="margin:0;">← Back</button>
+          <button onclick="deleteConvo()" style="padding:8px 16px;border-radius:8px;border:1px solid #DD4470;background:white;color:#DD4470;font-size:0.8em;cursor:pointer;font-weight:600;">🗑 Delete</button>
+        </div>
         <div class="convo-meta" id="convoMeta"></div>
         <div id="convoMessages"></div>
       </div>
@@ -202,6 +205,8 @@ async function viewConvo(sid) {
   document.getElementById('convoMessages').innerHTML = data.messages.map(m =>
     `<div class="msg ${m.role}"><div class="msg-role">${m.role === 'user' ? 'Visitor' : 'momoparadise'}</div>${m.content}</div>`
   ).join('');
+  // Store current session id for delete
+  document.getElementById('pageConvoDetail').dataset.sid = sid;
   if (data.ip && data.ip !== 'unknown') {
     fetch('https://ipapi.co/' + data.ip.split(',')[0].trim() + '/json/').then(r => r.json()).then(geo => {
       const loc = [geo.city, geo.region, geo.country_name].filter(Boolean).join(', ');
@@ -213,6 +218,21 @@ async function viewConvo(sid) {
 function showList() {
   document.getElementById('pageConvoDetail').classList.add('hidden');
   document.getElementById('pageConvos').classList.remove('hidden');
+}
+
+async function deleteConvo() {
+  const sid = document.getElementById('pageConvoDetail').dataset.sid;
+  if (!confirm('Delete this conversation? This cannot be undone.')) return;
+  try {
+    const res = await fetch(API + '/admin/conversation/' + sid + '?pw=' + encodeURIComponent(password), { method: 'DELETE' });
+    const data = await res.json();
+    if (data.error) { alert('Failed: ' + data.error); return; }
+    // Refresh list and go back
+    const listRes = await fetch(API + '/admin/conversations?pw=' + encodeURIComponent(password));
+    const listData = await listRes.json();
+    renderList(listData.conversations || []);
+    showList();
+  } catch (e) { alert('Failed to delete'); }
 }
 
 // --- Knowledge ---
