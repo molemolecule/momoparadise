@@ -7,38 +7,41 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f4f7; color: #2d2d2d; height: 100vh; display: flex; flex-direction: column; }
-
     .top-bar { background: #DD4470; color: white; padding: 14px 24px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
     .top-bar h1 { font-size: 1.2em; font-weight: 700; }
     .top-bar a { color: rgba(255,255,255,0.7); font-size: 0.85em; text-decoration: none; margin-left: auto; }
-
     .login { max-width: 400px; margin: 80px auto; text-align: center; }
     .login input { padding: 12px 16px; border-radius: 10px; border: 1px solid #ddd; width: 240px; font-size: 0.9em; outline: none; }
     .login input:focus { border-color: #DD4470; }
     .login button { padding: 12px 20px; border-radius: 10px; border: none; background: #DD4470; color: white; font-weight: 600; cursor: pointer; margin-left: 8px; }
-
     .app { display: none; flex: 1; overflow: hidden; }
     .app.active { display: flex; }
 
     /* Sidebar */
-    .sidebar { width: 220px; background: white; border-right: 1px solid #e8e8e8; display: flex; flex-direction: column; flex-shrink: 0; }
-    .nav-item { padding: 14px 20px; font-size: 0.9em; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; color: #666; }
+    .sidebar { width: 240px; background: white; border-right: 1px solid #e8e8e8; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+    .nav-section { padding: 16px 16px 6px; font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #bbb; }
+    .nav-section.momo { color: #DD4470; }
+    .nav-section.moro { color: #7c4dff; }
+    .nav-item { padding: 10px 20px; font-size: 0.85em; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; color: #666; display: flex; align-items: center; gap: 8px; }
     .nav-item:hover { background: #fdf0f4; color: #DD4470; }
     .nav-item.active { background: #fdf0f4; color: #DD4470; border-left-color: #DD4470; font-weight: 600; }
-    .nav-icon { margin-right: 8px; }
+    .nav-item.moro:hover { background: #f3f0ff; color: #7c4dff; }
+    .nav-item.moro.active { background: #f3f0ff; color: #7c4dff; border-left-color: #7c4dff; }
+    .nav-divider { height: 1px; background: #eee; margin: 8px 16px; }
 
     /* Main content */
     .main-content { flex: 1; overflow-y: auto; padding: 24px; }
+    .page { display: none; }
+    .page.active { display: block; }
 
     /* Cards */
     .card { background: white; border-radius: 14px; padding: 18px 20px; margin-bottom: 12px; cursor: pointer; border: 1px solid #eee; transition: box-shadow 0.2s; }
     .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
     .card-date { font-size: 0.8em; color: #999; }
     .card-meta { font-size: 0.75em; color: #bbb; }
     .card-preview { font-size: 0.9em; color: #555; }
     .card-badge { background: #E8EDF8; color: #555; font-size: 0.7em; padding: 3px 8px; border-radius: 6px; }
-
     .back-btn { background: none; border: none; color: #DD4470; font-size: 0.9em; cursor: pointer; font-weight: 600; margin-bottom: 16px; }
     .convo-meta { background: white; border-radius: 14px; padding: 16px 20px; margin-bottom: 16px; border: 1px solid #eee; font-size: 0.8em; color: #888; line-height: 1.8; }
     .msg { padding: 14px 18px; border-radius: 12px; margin-bottom: 8px; font-size: 0.9em; line-height: 1.6; }
@@ -50,31 +53,27 @@
     .empty { text-align: center; color: #bbb; padding: 60px 0; }
     .hidden { display: none; }
 
-    /* Knowledge editor */
+    /* Editor */
     .kb-wrap { max-width: 800px; }
     .kb-wrap label { font-weight: 600; color: #3a3a5c; display: block; margin-bottom: 8px; font-size: 0.9em; }
-    .kb-wrap textarea {
-      width: 100%; height: 500px; padding: 16px; border-radius: 12px;
-      border: 1px solid #ddd; font-family: monospace; font-size: 0.85em;
-      line-height: 1.6; resize: vertical; outline: none; color: #3a3a5c;
-    }
+    .kb-wrap textarea { width: 100%; height: 500px; padding: 16px; border-radius: 12px; border: 1px solid #ddd; font-family: monospace; font-size: 0.85em; line-height: 1.6; resize: vertical; outline: none; color: #3a3a5c; }
     .kb-wrap textarea:focus { border-color: #DD4470; }
     .kb-actions { display: flex; gap: 10px; margin-top: 14px; }
-    .kb-actions button {
-      padding: 10px 20px; border-radius: 10px; border: none;
-      font-size: 0.9em; font-weight: 600; cursor: pointer;
-    }
+    .kb-actions button { padding: 10px 20px; border-radius: 10px; border: none; font-size: 0.9em; font-weight: 600; cursor: pointer; }
     .btn-load { background: #E8EDF8; color: #555; }
     .btn-save { background: #DD4470; color: white; }
     .btn-save:hover { background: #c43d65; }
+    .btn-save.moro { background: #7c4dff; }
+    .btn-save.moro:hover { background: #6a3de8; }
     .kb-status { margin-top: 10px; font-size: 0.85em; min-height: 20px; }
     .kb-status.ok { color: #1DAB87; }
     .kb-status.err { color: #DD4470; }
+    .page-title { font-size: 1.1em; font-weight: 700; margin-bottom: 16px; color: #2d2d2d; }
 
-    @media (max-width: 600px) {
-      .sidebar { width: 60px; }
-      .nav-label { display: none; }
-      .nav-item { padding: 14px; text-align: center; }
+    @media (max-width: 700px) {
+      .sidebar { width: 56px; }
+      .nav-section, .nav-label { display: none; }
+      .nav-item { justify-content: center; padding: 12px; }
     }
   </style>
 </head>
@@ -93,63 +92,91 @@
 
   <div class="app" id="app">
     <div class="sidebar">
-      <div class="nav-item active" id="navConvos" onclick="showPage('convos')">
-        <span class="nav-icon">💬</span><span class="nav-label">Conversations</span>
+      <div class="nav-section momo">🌴 momoparadise</div>
+      <div class="nav-item active" data-page="momoConvos" onclick="showPage(this)">
+        <span>💬</span><span class="nav-label">Conversations</span>
       </div>
-      <div class="nav-item" id="navKnowledge" onclick="showPage('knowledge')">
-        <span class="nav-icon">🧠</span><span class="nav-label">Knowledge</span>
+      <div class="nav-item" data-page="momoKnowledge" onclick="showPage(this)">
+        <span>🧠</span><span class="nav-label">Knowledge</span>
       </div>
-      <div class="nav-item" id="navPrompt" onclick="showPage('prompt')">
-        <span class="nav-icon">✏️</span><span class="nav-label">System Prompt</span>
+      <div class="nav-item" data-page="momoPrompt" onclick="showPage(this)">
+        <span>✏️</span><span class="nav-label">System Prompt</span>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-section moro">🔮 Moroscope</div>
+      <div class="nav-item moro" data-page="moroConvos" onclick="showPage(this)">
+        <span>💬</span><span class="nav-label">Conversations</span>
+      </div>
+      <div class="nav-item moro" data-page="moroPrompt" onclick="showPage(this)">
+        <span>✏️</span><span class="nav-label">System Prompt</span>
       </div>
     </div>
     <div class="main-content" id="mainContent">
-      <!-- Conversations list -->
-      <div id="pageConvos">
-        <div id="convoList"></div>
+
+      <!-- momoparadise: Conversations -->
+      <div class="page active" id="pageMomoConvos">
+        <div class="page-title">🌴 momoparadise — Conversations</div>
+        <div id="momoConvoList"></div>
       </div>
-      <!-- Conversation detail -->
-      <div id="pageConvoDetail" class="hidden">
+      <div class="page" id="pageMomoConvoDetail">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-          <button class="back-btn" onclick="showList()" style="margin:0;">← Back</button>
-          <button onclick="deleteConvo()" style="padding:8px 16px;border-radius:8px;border:1px solid #DD4470;background:white;color:#DD4470;font-size:0.8em;cursor:pointer;font-weight:600;">🗑 Delete</button>
+          <button class="back-btn" onclick="showPage(document.querySelector('[data-page=momoConvos]'))">← Back</button>
+          <button onclick="deleteConvo('momo')" style="padding:8px 16px;border-radius:8px;border:1px solid #DD4470;background:white;color:#DD4470;font-size:0.8em;cursor:pointer;font-weight:600;">🗑 Delete</button>
         </div>
-        <div class="convo-meta" id="convoMeta"></div>
-        <div id="convoMessages"></div>
+        <div class="convo-meta" id="momoConvoMeta"></div>
+        <div id="momoConvoMessages"></div>
       </div>
-      <!-- Knowledge editor -->
-      <div id="pageKnowledge" class="hidden">
+
+      <!-- momoparadise: Knowledge -->
+      <div class="page" id="pageMomoKnowledge">
+        <div class="page-title">🌴 momoparadise — Knowledge Base</div>
         <div class="kb-wrap">
-          <label>Knowledge Base — edit what momoparadise knows about Mo</label>
-          <textarea id="kbText" placeholder="Loading..."></textarea>
+          <label>Edit what momoparadise knows about Mo</label>
+          <textarea id="momoKbText" placeholder="Loading..."></textarea>
           <div class="kb-actions">
-            <button class="btn-load" onclick="loadKnowledge()">Reload</button>
-            <button class="btn-save" onclick="saveKnowledge()">Save & Deploy</button>
+            <button class="btn-load" onclick="loadEditor('knowledge')">Reload</button>
+            <button class="btn-save" onclick="saveEditor('knowledge')">Save & Deploy</button>
           </div>
-          <div class="kb-status" id="kbStatus"></div>
+          <div class="kb-status" id="momoKbStatus"></div>
         </div>
       </div>
-      <!-- System Prompt editor -->
-      <div id="pagePrompt" class="hidden">
+
+      <!-- momoparadise: System Prompt -->
+      <div class="page" id="pageMomoPrompt">
+        <div class="page-title">🌴 momoparadise — System Prompt</div>
         <div class="kb-wrap">
-          <label>System Prompt — controls how momoparadise behaves and responds</label>
-          <textarea id="promptText" placeholder="Loading..."></textarea>
+          <label>Controls how momoparadise behaves and responds</label>
+          <textarea id="momoPromptText" placeholder="Loading..."></textarea>
           <div class="kb-actions">
-            <button class="btn-load" onclick="loadPrompt()">Reload</button>
-            <button class="btn-save" onclick="savePrompt()">Save & Deploy</button>
+            <button class="btn-load" onclick="loadEditor('prompt')">Reload</button>
+            <button class="btn-save" onclick="saveEditor('prompt')">Save & Deploy</button>
           </div>
-          <div class="kb-status" id="promptStatus"></div>
+          <div class="kb-status" id="momoPromptStatus"></div>
         </div>
       </div>
+
+      <!-- Moroscope: Conversations (placeholder) -->
+      <div class="page" id="pageMoroConvos">
+        <div class="page-title">🔮 Moroscope — Conversations</div>
+        <div class="empty">Moroscope conversation logging coming soon</div>
+      </div>
+
+      <!-- Moroscope: System Prompt (placeholder) -->
+      <div class="page" id="pageMoroPrompt">
+        <div class="page-title">🔮 Moroscope — System Prompt</div>
+        <div class="empty">Moroscope prompt editor coming soon</div>
+      </div>
+
     </div>
   </div>
 
 <script>
 const API = 'https://6okrr4nt3c.execute-api.us-west-2.amazonaws.com';
 let password = '';
+let currentConvoSid = '';
 
-// --- Login ---
 document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
 async function login() {
   password = document.getElementById('pw').value;
   if (!password) return;
@@ -159,48 +186,40 @@ async function login() {
     if (data.error) { document.getElementById('loginErr').textContent = data.error; return; }
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('app').classList.add('active');
-    renderList(data.conversations);
+    renderConvoList(data.conversations);
   } catch (e) { document.getElementById('loginErr').textContent = 'Connection error'; }
 }
 
-// --- Navigation ---
-function showPage(page) {
+function showPage(el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('pageConvos').classList.add('hidden');
-  document.getElementById('pageConvoDetail').classList.add('hidden');
-  document.getElementById('pageKnowledge').classList.add('hidden');
-  document.getElementById('pagePrompt').classList.add('hidden');
-  if (page === 'convos') {
-    document.getElementById('navConvos').classList.add('active');
-    document.getElementById('pageConvos').classList.remove('hidden');
-  } else if (page === 'knowledge') {
-    document.getElementById('navKnowledge').classList.add('active');
-    document.getElementById('pageKnowledge').classList.remove('hidden');
-    loadKnowledge();
-  } else if (page === 'prompt') {
-    document.getElementById('navPrompt').classList.add('active');
-    document.getElementById('pagePrompt').classList.remove('hidden');
-    loadPrompt();
-  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const pageId = 'page' + el.dataset.page.charAt(0).toUpperCase() + el.dataset.page.slice(1);
+  const page = document.getElementById(pageId);
+  if (page) page.classList.add('active');
+
+  // Auto-load editors
+  if (el.dataset.page === 'momoKnowledge') loadEditor('knowledge');
+  if (el.dataset.page === 'momoPrompt') loadEditor('prompt');
 }
 
 // --- Conversations ---
-function renderList(convos) {
-  const el = document.getElementById('convoList');
+function renderConvoList(convos) {
+  const el = document.getElementById('momoConvoList');
   if (!convos.length) { el.innerHTML = '<div class="empty">No conversations yet</div>'; return; }
   el.innerHTML = convos.map(c => {
     const d = new Date(c.created_at);
     const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const quizBadge = c.has_quiz ? '<span class="card-badge" style="background:#fdf0f4;color:#DD4470;margin-left:4px;">🎮 Quiz' + (c.quiz_score ? ' · ' + c.quiz_score : '') + '</span>' : '';
     return `<div class="card" onclick="viewConvo('${c.session_id}')">
-      <div class="card-top"><span class="card-date">${dateStr}</span><span class="card-badge">${c.message_count} msgs</span>${c.has_quiz ? '<span class="card-badge" style="background:#fdf0f4;color:#DD4470;margin-left:4px;">🎮 Quiz' + (c.quiz_score ? ' · ' + c.quiz_score : '') + '</span>' : ''}</div>
+      <div class="card-top"><span class="card-date">${dateStr}</span><span class="card-badge">${c.message_count} msgs</span>${quizBadge}</div>
       <div class="card-preview">"${c.preview || '...'}"</div>
       <div class="card-meta">IP: ${c.ip || '?'} <span id="geo-${c.session_id}"></span></div>
     </div>`;
   }).join('');
   convos.forEach(c => {
     if (c.ip && c.ip !== 'unknown') {
-      const ip = c.ip.split(',')[0].trim();
-      fetch('https://ipapi.co/' + ip + '/json/').then(r => r.json()).then(geo => {
+      fetch('https://ipapi.co/' + c.ip.split(',')[0].trim() + '/json/').then(r => r.json()).then(geo => {
         const loc = [geo.city, geo.country_name].filter(Boolean).join(', ');
         const el = document.getElementById('geo-' + c.session_id);
         if (el && loc) el.textContent = '📍 ' + loc;
@@ -210,111 +229,69 @@ function renderList(convos) {
 }
 
 async function viewConvo(sid) {
+  currentConvoSid = sid;
   const res = await fetch(API + '/admin/conversation/' + sid + '?pw=' + encodeURIComponent(password));
   const data = await res.json();
   if (data.error) return;
-  document.getElementById('pageConvos').classList.add('hidden');
-  document.getElementById('pageConvoDetail').classList.remove('hidden');
+  document.getElementById('pageMomoConvos').classList.remove('active');
+  document.getElementById('pageMomoConvoDetail').classList.add('active');
   const d1 = new Date(data.created_at), d2 = new Date(data.updated_at);
-  document.getElementById('convoMeta').innerHTML =
+  document.getElementById('momoConvoMeta').innerHTML =
     `<strong>Session:</strong> ${data.session_id}<br>` +
     `<strong>Started:</strong> ${d1.toLocaleString()}<br>` +
     `<strong>Last active:</strong> ${d2.toLocaleString()}<br>` +
-    `<strong>IP:</strong> ${data.ip || '?'} <span id="geoInfo"></span><br>` +
+    `<strong>IP:</strong> ${data.ip || '?'} <span id="geoDetail"></span><br>` +
     `<strong>Browser:</strong> ${data.user_agent || '?'}`;
-  document.getElementById('convoMessages').innerHTML = data.messages.map(m =>
+  document.getElementById('momoConvoMessages').innerHTML = data.messages.map(m =>
     `<div class="msg ${m.role}"><div class="msg-role">${m.role === 'user' ? 'Visitor' : 'momoparadise'}</div>${m.content}</div>`
   ).join('');
-  // Store current session id for delete
-  document.getElementById('pageConvoDetail').dataset.sid = sid;
   if (data.ip && data.ip !== 'unknown') {
     fetch('https://ipapi.co/' + data.ip.split(',')[0].trim() + '/json/').then(r => r.json()).then(geo => {
       const loc = [geo.city, geo.region, geo.country_name].filter(Boolean).join(', ');
-      document.getElementById('geoInfo').textContent = loc ? '📍 ' + loc : '';
+      const el = document.getElementById('geoDetail');
+      if (el) el.textContent = loc ? '📍 ' + loc : '';
     }).catch(() => {});
   }
 }
 
-function showList() {
-  document.getElementById('pageConvoDetail').classList.add('hidden');
-  document.getElementById('pageConvos').classList.remove('hidden');
+async function deleteConvo(type) {
+  if (!confirm('Delete this conversation?')) return;
+  await fetch(API + '/admin/conversation/' + currentConvoSid + '?pw=' + encodeURIComponent(password), { method: 'DELETE' });
+  const res = await fetch(API + '/admin/conversations?pw=' + encodeURIComponent(password));
+  const data = await res.json();
+  renderConvoList(data.conversations || []);
+  showPage(document.querySelector('[data-page=momoConvos]'));
 }
 
-async function deleteConvo() {
-  const sid = document.getElementById('pageConvoDetail').dataset.sid;
-  if (!confirm('Delete this conversation? This cannot be undone.')) return;
+// --- Editors ---
+async function loadEditor(type) {
+  const textEl = document.getElementById(type === 'knowledge' ? 'momoKbText' : 'momoPromptText');
+  const statusEl = document.getElementById(type === 'knowledge' ? 'momoKbStatus' : 'momoPromptStatus');
+  statusEl.textContent = 'Loading...'; statusEl.className = 'kb-status ok';
   try {
-    const res = await fetch(API + '/admin/conversation/' + sid + '?pw=' + encodeURIComponent(password), { method: 'DELETE' });
+    const res = await fetch(API + '/admin/' + type + '?pw=' + encodeURIComponent(password));
     const data = await res.json();
-    if (data.error) { alert('Failed: ' + data.error); return; }
-    // Refresh list and go back
-    const listRes = await fetch(API + '/admin/conversations?pw=' + encodeURIComponent(password));
-    const listData = await listRes.json();
-    renderList(listData.conversations || []);
-    showList();
-  } catch (e) { alert('Failed to delete'); }
+    if (data.error) { statusEl.textContent = data.error; statusEl.className = 'kb-status err'; return; }
+    textEl.value = data[type];
+    statusEl.textContent = 'Loaded!';
+  } catch (e) { statusEl.textContent = 'Failed'; statusEl.className = 'kb-status err'; }
 }
 
-// --- Knowledge ---
-async function loadKnowledge() {
-  setKbStatus('Loading...', false);
+async function saveEditor(type) {
+  const textEl = document.getElementById(type === 'knowledge' ? 'momoKbText' : 'momoPromptText');
+  const statusEl = document.getElementById(type === 'knowledge' ? 'momoKbStatus' : 'momoPromptStatus');
+  statusEl.textContent = 'Saving...'; statusEl.className = 'kb-status ok';
   try {
-    const res = await fetch(API + '/admin/knowledge?pw=' + encodeURIComponent(password));
-    const data = await res.json();
-    if (data.error) { setKbStatus(data.error, true); return; }
-    document.getElementById('kbText').value = data.knowledge;
-    setKbStatus('Loaded!', false);
-  } catch (e) { setKbStatus('Failed to load', true); }
-}
-
-async function saveKnowledge() {
-  setKbStatus('Saving...', false);
-  try {
-    const res = await fetch(API + '/admin/knowledge', {
+    const payload = { password };
+    payload[type] = textEl.value;
+    const res = await fetch(API + '/admin/' + type, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password, knowledge: document.getElementById('kbText').value }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
-    if (data.error) { setKbStatus(data.error, true); return; }
-    setKbStatus('Saved & deployed! Changes are live.', false);
-  } catch (e) { setKbStatus('Failed to save', true); }
-}
-
-function setKbStatus(msg, isErr) {
-  const el = document.getElementById('kbStatus');
-  el.textContent = msg;
-  el.className = 'kb-status ' + (isErr ? 'err' : 'ok');
-}
-
-// --- System Prompt ---
-async function loadPrompt() {
-  setPromptStatus('Loading...', false);
-  try {
-    const res = await fetch(API + '/admin/prompt?pw=' + encodeURIComponent(password));
-    const data = await res.json();
-    if (data.error) { setPromptStatus(data.error, true); return; }
-    document.getElementById('promptText').value = data.prompt;
-    setPromptStatus('Loaded!', false);
-  } catch (e) { setPromptStatus('Failed to load', true); }
-}
-
-async function savePrompt() {
-  setPromptStatus('Saving...', false);
-  try {
-    const res = await fetch(API + '/admin/prompt', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password, prompt: document.getElementById('promptText').value }),
-    });
-    const data = await res.json();
-    if (data.error) { setPromptStatus(data.error, true); return; }
-    setPromptStatus('Saved & deployed! Changes are live.', false);
-  } catch (e) { setPromptStatus('Failed to save', true); }
-}
-
-function setPromptStatus(msg, isErr) {
-  const el = document.getElementById('promptStatus');
-  el.textContent = msg;
-  el.className = 'kb-status ' + (isErr ? 'err' : 'ok');
+    if (data.error) { statusEl.textContent = data.error; statusEl.className = 'kb-status err'; return; }
+    statusEl.textContent = 'Saved & deployed! Changes are live.';
+  } catch (e) { statusEl.textContent = 'Failed'; statusEl.className = 'kb-status err'; }
 }
 </script>
 </body>
