@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moroscope — Mo's Astrology Bot</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100vh; display: flex; flex-direction: column;
+      background: #1a1128; color: #e8e0f0;
+    }
+    .welcome {
+      flex: 1; display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      padding: 40px 24px; text-align: center;
+    }
+    .welcome h1 { font-size: 2em; font-weight: 800; color: #c9a0ff; margin-bottom: 8px; }
+    .welcome p { font-size: 0.9em; color: #8878a0; margin-bottom: 32px; }
+    .welcome .input-wrap {
+      width: 100%; max-width: 600px; display: flex; gap: 10px;
+    }
+    .chat-screen { display: none; flex-direction: column; flex: 1; }
+    .chat-screen.active { display: flex; }
+    .messages { flex: 1; overflow-y: auto; padding: 0; }
+    .msg-row { padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .msg-row.assistant { background: rgba(255,255,255,0.03); }
+    .msg-inner {
+      max-width: 680px; margin: 0 auto; padding: 0 24px;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .msg-avatar {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .msg-avatar.bot { background: #2d1f4e; }
+    .msg-avatar.user { background: #3a2a5c; }
+    .msg-avatar.user svg { width: 18px; height: 18px; fill: #8878a0; }
+    .msg-body { flex: 1; min-width: 0; }
+    .msg-label {
+      font-size: 0.75em; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 4px;
+    }
+    .msg-row.user .msg-label { color: #c9a0ff; }
+    .msg-row.assistant .msg-label { color: #7ee8c7; }
+    .msg-text { font-size: 0.95em; line-height: 1.7; color: #d8d0e8; }
+    .msg-row.user .msg-text { color: #e8e0f0; font-weight: 500; }
+    .msg-row.typing .msg-text { color: #6860a0; font-style: italic; }
+    .input-area {
+      border-top: 1px solid rgba(255,255,255,0.08); padding: 16px 24px;
+      background: #1a1128;
+    }
+    .input-area .input-wrap {
+      max-width: 680px; margin: 0 auto; display: flex; gap: 10px;
+    }
+    .input-wrap input {
+      flex: 1; padding: 14px 18px; border-radius: 12px;
+      border: 1px solid #3a2a5c; font-size: 0.93em; outline: none;
+      background: #2d1f4e; color: #e8e0f0; transition: border-color 0.2s;
+    }
+    .input-wrap input:focus { border-color: #c9a0ff; }
+    .input-wrap input::placeholder { color: #6860a0; }
+    .input-wrap button {
+      padding: 14px 24px; border-radius: 12px; border: none;
+      background: #7c4dff; color: white; font-size: 0.93em;
+      font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .input-wrap button:hover { background: #6a3de8; }
+    .input-wrap button:disabled { background: #3a2a5c; cursor: not-allowed; }
+    .messages::-webkit-scrollbar { width: 6px; }
+    .messages::-webkit-scrollbar-thumb { background: #3a2a5c; border-radius: 3px; }
+    .status-bar {
+      text-align: center; padding: 12px; font-size: 0.8em; color: #7ee8c7;
+      background: rgba(126,232,199,0.08);
+    }
+    @media (max-width: 600px) {
+      .welcome h1 { font-size: 1.6em; }
+      .msg-inner, .input-area .input-wrap { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div style="display:flex;align-items:center;padding:10px 24px;background:#120e1e;border-bottom:1px solid rgba(255,255,255,0.06);gap:8px;">
+    <a href="index.html" style="padding:6px 14px;border-radius:8px;font-size:0.8em;font-weight:600;text-decoration:none;color:#6860a0;">🌴 momoparadise</a>
+    <a href="moroscope.html" style="padding:6px 14px;border-radius:8px;font-size:0.8em;font-weight:600;text-decoration:none;color:white;background:#7c4dff;">🔮 Moroscope</a>
+  </div>
+  <div class="welcome" id="welcome">
+    <h1>🔮 Moroscope</h1>
+    <p>Mo's astrology chatbot — Thai hora style, straight answers, real timelines</p>
+    <div class="input-wrap">
+      <input type="text" id="welcomeInput" placeholder="Say hi to get your chart read..." autocomplete="off">
+      <button onclick="firstMessage()">Send</button>
+    </div>
+  </div>
+  <div class="chat-screen" id="chatScreen">
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <div class="input-wrap">
+        <input type="text" id="chatInput" placeholder="Ask about your chart..." autocomplete="off">
+        <button id="chatBtn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const API = 'https://6okrr4nt3c.execute-api.us-west-2.amazonaws.com/moroscope';
+const USER_SVG = '<svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z"/></svg>';
+
+let chatHistory = [];
+let chartData = '';
+let chartCalculated = false;
+
+const welcomeEl = document.getElementById('welcome');
+const chatScreen = document.getElementById('chatScreen');
+const welcomeInput = document.getElementById('welcomeInput');
+const chatInput = document.getElementById('chatInput');
+const messagesDiv = document.getElementById('messages');
+const chatBtn = document.getElementById('chatBtn');
+
+welcomeInput.addEventListener('keydown', e => { if (e.key === 'Enter') firstMessage(); });
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !chatBtn.disabled) sendMessage(); });
+
+function firstMessage() {
+  const text = welcomeInput.value.trim();
+  if (!text) return;
+  welcomeEl.style.display = 'none';
+  chatScreen.classList.add('active');
+  addMessage(text, 'user');
+  doSend(text);
+  chatInput.focus();
+}
+
+function sendMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  addMessage(text, 'user');
+  chatInput.value = '';
+  doSend(text);
+}
+
+async function doSend(text) {
+  chatBtn.disabled = true;
+  const typ = addMessage('Reading the stars...', 'typing');
+
+  // Check if user provided birth data we can parse
+  if (!chartCalculated) {
+    const dateMatch = text.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    const timeMatch = text.match(/(\d{1,2}):(\d{2})/);
+    // Let the AI handle the conversation naturally
+  }
+
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'chat',
+        message: text,
+        messages: chatHistory,
+        chart_data: chartData,
+      }),
+    });
+    const data = await res.json();
+    typ.remove();
+    if (data.error) {
+      addMessage('Something went wrong: ' + data.error, 'assistant');
+    } else {
+      chatHistory.push({ role: 'user', content: text });
+      chatHistory.push({ role: 'assistant', content: data.response });
+      addMessage(data.response, 'assistant');
+    }
+  } catch (err) {
+    typ.remove();
+    addMessage('Connection error — try again.', 'assistant');
+  }
+  chatBtn.disabled = false;
+  chatInput.focus();
+}
+
+function addMessage(text, type) {
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + type;
+  let avatar;
+  if (type === 'user') {
+    avatar = '<div class="msg-avatar user">' + USER_SVG + '</div>';
+  } else {
+    avatar = '<div class="msg-avatar bot">🔮</div>';
+  }
+  const label = type === 'user' ? 'You' : type === 'typing' ? '' : 'Moroscope';
+  row.innerHTML = '<div class="msg-inner">' + avatar +
+    '<div class="msg-body">' +
+    (label ? '<div class="msg-label">' + label + '</div>' : '') +
+    '<div class="msg-text">' + formatText(text) + '</div></div></div>';
+  messagesDiv.appendChild(row);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  return row;
+}
+
+function formatText(text) {
+  let html = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
+    '<a href="$2" target="_blank" style="color:#c9a0ff;text-decoration:underline;">$1</a>');
+  html = html.replace(/(^|[^"'])(https?:\/\/[^\s<]+)/g,
+    '$1<a href="$2" target="_blank" style="color:#c9a0ff;text-decoration:underline;">$2</a>');
+  return html;
+}
+</script>
+</body>
+</html>
