@@ -107,6 +107,9 @@
       <div class="nav-item moro" data-page="moroConvos" onclick="showPage(this)">
         <span>💬</span><span class="nav-label">Conversations</span>
       </div>
+      <div class="nav-item moro" data-page="moroKnowledge" onclick="showPage(this)">
+        <span>🧠</span><span class="nav-label">Knowledge</span>
+      </div>
       <div class="nav-item moro" data-page="moroPrompt" onclick="showPage(this)">
         <span>✏️</span><span class="nav-label">System Prompt</span>
       </div>
@@ -169,6 +172,20 @@
         <div id="moroConvoMessages"></div>
       </div>
 
+      <!-- Moroscope: Knowledge -->
+      <div class="page" id="pageMoroKnowledge">
+        <div class="page-title">🔮 Moroscope — Knowledge Base</div>
+        <div class="kb-wrap">
+          <label>Astrology reference data, house meanings, transit notes</label>
+          <textarea id="moroKbText" placeholder="Loading..."></textarea>
+          <div class="kb-actions">
+            <button class="btn-load" onclick="loadMoroEditor('knowledge')">Reload</button>
+            <button class="btn-save moro" onclick="saveMoroEditor('knowledge')">Save & Deploy</button>
+          </div>
+          <div class="kb-status" id="moroKbStatus"></div>
+        </div>
+      </div>
+
       <!-- Moroscope: System Prompt -->
       <div class="page" id="pageMoroPrompt">
         <div class="page-title">🔮 Moroscope — System Prompt</div>
@@ -218,6 +235,7 @@ function showPage(el) {
   if (el.dataset.page === 'momoKnowledge') loadEditor('knowledge');
   if (el.dataset.page === 'momoPrompt') loadEditor('prompt');
   if (el.dataset.page === 'moroConvos') loadMoroConvos();
+  if (el.dataset.page === 'moroKnowledge') loadMoroEditor('knowledge');
   if (el.dataset.page === 'moroPrompt') loadMoroEditor('prompt');
 }
 
@@ -376,24 +394,28 @@ async function viewMoroConvo(sid) {
 
 // --- Moroscope Prompt Editor ---
 async function loadMoroEditor(type) {
-  const statusEl = document.getElementById('moroPromptStatus');
+  const textEl = document.getElementById(type === 'knowledge' ? 'moroKbText' : 'moroPromptText');
+  const statusEl = document.getElementById(type === 'knowledge' ? 'moroKbStatus' : 'moroPromptStatus');
   statusEl.textContent = 'Loading...'; statusEl.className = 'kb-status ok';
   try {
-    const res = await fetch(API + '/moroscope/admin/prompt?pw=' + encodeURIComponent(password));
+    const res = await fetch(API + '/moroscope/admin/' + type + '?pw=' + encodeURIComponent(password));
     const data = await res.json();
     if (data.error) { statusEl.textContent = data.error; statusEl.className = 'kb-status err'; return; }
-    document.getElementById('moroPromptText').value = data.prompt;
+    textEl.value = data[type];
     statusEl.textContent = 'Loaded!';
   } catch (e) { statusEl.textContent = 'Failed'; statusEl.className = 'kb-status err'; }
 }
 
 async function saveMoroEditor(type) {
-  const statusEl = document.getElementById('moroPromptStatus');
+  const textEl = document.getElementById(type === 'knowledge' ? 'moroKbText' : 'moroPromptText');
+  const statusEl = document.getElementById(type === 'knowledge' ? 'moroKbStatus' : 'moroPromptStatus');
   statusEl.textContent = 'Saving...'; statusEl.className = 'kb-status ok';
   try {
-    const res = await fetch(API + '/moroscope/admin/prompt', {
+    const payload = { password };
+    payload[type] = textEl.value;
+    const res = await fetch(API + '/moroscope/admin/' + type, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password, prompt: document.getElementById('moroPromptText').value }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
     if (data.error) { statusEl.textContent = data.error; statusEl.className = 'kb-status err'; return; }
