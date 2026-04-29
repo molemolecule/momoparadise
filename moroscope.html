@@ -147,7 +147,7 @@ function firstMessage() {
   chatScreen.classList.add('active');
   addMessage(text, 'user');
   doSend(text);
-  chatInput.focus();
+  chatInput.blur();
 }
 
 function sendMessage() {
@@ -198,7 +198,6 @@ async function doSend(text) {
     addMessage('Connection error — try again.', 'assistant');
   }
   chatBtn.disabled = false;
-  chatInput.focus();
 }
 
 function addMessage(text, type) {
