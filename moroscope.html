@@ -172,6 +172,7 @@ async function doSend(text) {
         messages: chatHistory,
         chart_data: chartData,
         session_id: sessionId,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       }),
     });
     const data = await res.json();
