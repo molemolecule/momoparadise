@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
   <title>Moroscope — Mo's Astrology Bot</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { height: 100%; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      height: 100vh; display: flex; flex-direction: column;
+      height: 100dvh; display: flex; flex-direction: column;
       background: #1a1128; color: #e8e0f0;
     }
     .welcome {
@@ -77,13 +78,14 @@
     @media (max-width: 600px) {
       .welcome h1 { font-size: 1.6em; }
       .msg-inner, .input-area .input-wrap { padding: 0 16px; }
+      .input-area { position: sticky; bottom: 0; }
     }
   </style>
 </head>
 <body>
-  <div style="display:flex;align-items:center;padding:10px 24px;background:#120e1e;border-bottom:1px solid rgba(255,255,255,0.06);gap:8px;">
-    <a href="index.html" style="padding:6px 14px;border-radius:8px;font-size:0.8em;font-weight:600;text-decoration:none;color:#6860a0;">🌴 momoparadise</a>
-    <a href="moroscope.html" style="padding:6px 14px;border-radius:8px;font-size:0.8em;font-weight:600;text-decoration:none;color:white;background:#7c4dff;">🔮 Moroscope</a>
+  <div style="display:flex;align-items:center;padding:10px 16px;background:#120e1e;border-bottom:1px solid rgba(255,255,255,0.06);gap:6px;flex-shrink:0;">
+    <a href="index.html" style="padding:8px 16px;border-radius:10px;font-size:0.85em;font-weight:600;text-decoration:none;color:#6860a0;white-space:nowrap;">🌴 momoparadise</a>
+    <a href="moroscope.html" style="padding:8px 16px;border-radius:10px;font-size:0.85em;font-weight:600;text-decoration:none;color:white;background:#7c4dff;white-space:nowrap;">🔮 Moroscope</a>
   </div>
   <div class="welcome" id="welcome">
     <h1>🔮 Moroscope</h1>
@@ -104,6 +106,15 @@
   </div>
 
 <script>
+// Safari mobile keyboard fix
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    document.body.style.height = window.visualViewport.height + 'px';
+    const msgs = document.getElementById('messages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  });
+}
+
 const API = 'https://6okrr4nt3c.execute-api.us-west-2.amazonaws.com/moroscope';
 const USER_SVG = '<svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z"/></svg>';
 

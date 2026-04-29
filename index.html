@@ -2,26 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
   <title>momoparadise</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { height: 100%; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      height: 100vh; display: flex; flex-direction: column;
+      height: 100dvh; display: flex; flex-direction: column;
       background: #f9f9f9; color: #2d2d2d;
     }
 
     .top-nav {
-      display: flex; align-items: center; padding: 10px 24px;
-      background: white; border-bottom: 1px solid #eee; flex-shrink: 0; gap: 8px;
+      display: flex; align-items: center; padding: 10px 16px;
+      background: white; border-bottom: 1px solid #eee; flex-shrink: 0; gap: 6px;
     }
     .top-nav a {
-      padding: 6px 14px; border-radius: 8px; font-size: 0.8em; font-weight: 600;
+      padding: 8px 16px; border-radius: 10px; font-size: 0.85em; font-weight: 600;
       text-decoration: none; color: #888; transition: all 0.15s;
+      white-space: nowrap;
     }
     .top-nav a:hover { background: #f0f0f0; color: #2d2d2d; }
     .top-nav a.active { background: #DD4470; color: white; }
+    .top-nav a.moro { }
+    .top-nav a.moro.active { background: #7c4dff; color: white; }
     .top-nav .spacer { flex: 1; }
 
     /* Welcome screen */
@@ -123,13 +127,14 @@
       .welcome h1 { font-size: 1.6em; }
       .welcome .hero-photo { width: 110px; height: 110px; }
       .msg-inner, .input-area .input-wrap { padding: 0 16px; }
+      .input-area { position: sticky; bottom: 0; }
     }
   </style>
 </head>
 <body>
   <div class="top-nav">
     <a href="index.html" class="active">🌴 momoparadise</a>
-    <a href="moroscope.html">🔮 Moroscope</a>
+    <a href="moroscope.html" class="moro">🔮 Moroscope</a>
     <div class="spacer"></div>
   </div>
 
@@ -154,6 +159,15 @@
   </div>
 
 <script>
+// Safari mobile keyboard fix
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    document.body.style.height = window.visualViewport.height + 'px';
+    const msgs = document.getElementById('messages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  });
+}
+
 const USER_SVG = '<svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z"/></svg>';
 
 let chatHistory = [];
