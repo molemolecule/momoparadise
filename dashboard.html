@@ -155,16 +155,32 @@
         </div>
       </div>
 
-      <!-- Moroscope: Conversations (placeholder) -->
+      <!-- Moroscope: Conversations -->
       <div class="page" id="pageMoroConvos">
         <div class="page-title">🔮 Moroscope — Conversations</div>
-        <div class="empty">Moroscope conversation logging coming soon</div>
+        <div id="moroConvoList"></div>
+      </div>
+      <div class="page" id="pageMoroConvoDetail">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <button class="back-btn" onclick="showPage(document.querySelector('[data-page=moroConvos]'))" style="color:#7c4dff;">← Back</button>
+          <button onclick="deleteConvo('moro')" style="padding:8px 16px;border-radius:8px;border:1px solid #7c4dff;background:white;color:#7c4dff;font-size:0.8em;cursor:pointer;font-weight:600;">🗑 Delete</button>
+        </div>
+        <div class="convo-meta" id="moroConvoMeta"></div>
+        <div id="moroConvoMessages"></div>
       </div>
 
-      <!-- Moroscope: System Prompt (placeholder) -->
+      <!-- Moroscope: System Prompt -->
       <div class="page" id="pageMoroPrompt">
         <div class="page-title">🔮 Moroscope — System Prompt</div>
-        <div class="empty">Moroscope prompt editor coming soon</div>
+        <div class="kb-wrap">
+          <label>Controls how Moroscope behaves and responds</label>
+          <textarea id="moroPromptText" placeholder="Loading..."></textarea>
+          <div class="kb-actions">
+            <button class="btn-load" onclick="loadMoroEditor('prompt')">Reload</button>
+            <button class="btn-save moro" onclick="saveMoroEditor('prompt')">Save & Deploy</button>
+          </div>
+          <div class="kb-status" id="moroPromptStatus"></div>
+        </div>
       </div>
 
     </div>
@@ -201,6 +217,8 @@ function showPage(el) {
   // Auto-load editors
   if (el.dataset.page === 'momoKnowledge') loadEditor('knowledge');
   if (el.dataset.page === 'momoPrompt') loadEditor('prompt');
+  if (el.dataset.page === 'moroConvos') loadMoroConvos();
+  if (el.dataset.page === 'moroPrompt') loadMoroEditor('prompt');
 }
 
 // --- Conversations ---
@@ -256,11 +274,17 @@ async function viewConvo(sid) {
 
 async function deleteConvo(type) {
   if (!confirm('Delete this conversation?')) return;
-  await fetch(API + '/admin/conversation/' + currentConvoSid + '?pw=' + encodeURIComponent(password), { method: 'DELETE' });
-  const res = await fetch(API + '/admin/conversations?pw=' + encodeURIComponent(password));
-  const data = await res.json();
-  renderConvoList(data.conversations || []);
-  showPage(document.querySelector('[data-page=momoConvos]'));
+  if (type === 'moro') {
+    await fetch(API + '/moroscope/admin/conversation/' + currentConvoSid + '?pw=' + encodeURIComponent(password), { method: 'DELETE' });
+    loadMoroConvos();
+    showPage(document.querySelector('[data-page=moroConvos]'));
+  } else {
+    await fetch(API + '/admin/conversation/' + currentConvoSid + '?pw=' + encodeURIComponent(password), { method: 'DELETE' });
+    const res = await fetch(API + '/admin/conversations?pw=' + encodeURIComponent(password));
+    const data = await res.json();
+    renderConvoList(data.conversations || []);
+    showPage(document.querySelector('[data-page=momoConvos]'));
+  }
 }
 
 // --- Editors ---
@@ -287,6 +311,89 @@ async function saveEditor(type) {
     const res = await fetch(API + '/admin/' + type, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.error) { statusEl.textContent = data.error; statusEl.className = 'kb-status err'; return; }
+    statusEl.textContent = 'Saved & deployed! Changes are live.';
+  } catch (e) { statusEl.textContent = 'Failed'; statusEl.className = 'kb-status err'; }
+}
+
+// --- Moroscope Conversations ---
+async function loadMoroConvos() {
+  const el = document.getElementById('moroConvoList');
+  el.innerHTML = '<div class="empty">Loading...</div>';
+  try {
+    const res = await fetch(API + '/moroscope/admin/conversations?pw=' + encodeURIComponent(password));
+    const data = await res.json();
+    if (data.error) { el.innerHTML = '<div class="empty">' + data.error + '</div>'; return; }
+    const convos = data.conversations || [];
+    if (!convos.length) { el.innerHTML = '<div class="empty">No Moroscope conversations yet</div>'; return; }
+    el.innerHTML = convos.map(c => {
+      const d = new Date(c.created_at);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      return `<div class="card" onclick="viewMoroConvo('${c.session_id}')">
+        <div class="card-top"><span class="card-date">${dateStr}</span><span class="card-badge">${c.message_count} msgs</span></div>
+        <div class="card-preview">"${c.preview || '...'}"</div>
+        <div class="card-meta">IP: ${c.ip || '?'} <span id="morogeo-${c.session_id}"></span></div>
+      </div>`;
+    }).join('');
+    convos.forEach(c => {
+      if (c.ip && c.ip !== 'unknown') {
+        fetch('https://ipapi.co/' + c.ip.split(',')[0].trim() + '/json/').then(r => r.json()).then(geo => {
+          const loc = [geo.city, geo.country_name].filter(Boolean).join(', ');
+          const el = document.getElementById('morogeo-' + c.session_id);
+          if (el && loc) el.textContent = '📍 ' + loc;
+        }).catch(() => {});
+      }
+    });
+  } catch (e) { el.innerHTML = '<div class="empty">Error loading</div>'; }
+}
+
+async function viewMoroConvo(sid) {
+  currentConvoSid = sid;
+  const res = await fetch(API + '/moroscope/admin/conversation/' + sid + '?pw=' + encodeURIComponent(password));
+  const data = await res.json();
+  if (data.error) return;
+  document.getElementById('pageMoroConvos').classList.remove('active');
+  document.getElementById('pageMoroConvoDetail').classList.add('active');
+  const d1 = new Date(data.created_at), d2 = new Date(data.updated_at);
+  document.getElementById('moroConvoMeta').innerHTML =
+    `<strong>Session:</strong> ${data.session_id}<br>` +
+    `<strong>Started:</strong> ${d1.toLocaleString()}<br>` +
+    `<strong>Last active:</strong> ${d2.toLocaleString()}<br>` +
+    `<strong>IP:</strong> ${data.ip || '?'} <span id="moroGeoDetail"></span><br>` +
+    `<strong>Browser:</strong> ${data.user_agent || '?'}`;
+  document.getElementById('moroConvoMessages').innerHTML = data.messages.map(m =>
+    `<div class="msg ${m.role}"><div class="msg-role">${m.role === 'user' ? 'Visitor' : 'Moroscope'}</div>${m.content}</div>`
+  ).join('');
+  if (data.ip && data.ip !== 'unknown') {
+    fetch('https://ipapi.co/' + data.ip.split(',')[0].trim() + '/json/').then(r => r.json()).then(geo => {
+      const el = document.getElementById('moroGeoDetail');
+      if (el) el.textContent = [geo.city, geo.region, geo.country_name].filter(Boolean).join(', ');
+    }).catch(() => {});
+  }
+}
+
+// --- Moroscope Prompt Editor ---
+async function loadMoroEditor(type) {
+  const statusEl = document.getElementById('moroPromptStatus');
+  statusEl.textContent = 'Loading...'; statusEl.className = 'kb-status ok';
+  try {
+    const res = await fetch(API + '/moroscope/admin/prompt?pw=' + encodeURIComponent(password));
+    const data = await res.json();
+    if (data.error) { statusEl.textContent = data.error; statusEl.className = 'kb-status err'; return; }
+    document.getElementById('moroPromptText').value = data.prompt;
+    statusEl.textContent = 'Loaded!';
+  } catch (e) { statusEl.textContent = 'Failed'; statusEl.className = 'kb-status err'; }
+}
+
+async function saveMoroEditor(type) {
+  const statusEl = document.getElementById('moroPromptStatus');
+  statusEl.textContent = 'Saving...'; statusEl.className = 'kb-status ok';
+  try {
+    const res = await fetch(API + '/moroscope/admin/prompt', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password, prompt: document.getElementById('moroPromptText').value }),
     });
     const data = await res.json();
     if (data.error) { statusEl.textContent = data.error; statusEl.className = 'kb-status err'; return; }
