@@ -218,12 +218,23 @@ async function doSend(text) {
 }
 
 function formatText(text) {
-  // Convert markdown links [text](url) to clickable links
-  let html = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
+  let html = text;
+  // Newlines to <br>
+  html = html.replace(/\n/g, '<br>');
+  // Bold **text**
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Italic *text*
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  // Headers ### text
+  html = html.replace(/#{3,}\s*(.+?)(<br>|$)/g, '<strong style="font-size:1.05em;">$1</strong>$2');
+  // Markdown links [text](url)
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
     '<a href="$2" target="_blank" style="color:#DD4470;text-decoration:underline;">$1</a>');
-  // Convert raw URLs to clickable links
-  html = html.replace(/(^|[^"'])(https?:\/\/[^\s<]+)/g,
+  // Raw URLs
+  html = html.replace(/(^|[^"'>])(https?:\/\/[^\s<]+)/g,
     '$1<a href="$2" target="_blank" style="color:#DD4470;text-decoration:underline;">$2</a>');
+  // Bullet points - text
+  html = html.replace(/(<br>)\s*[-•]\s+/g, '$1&nbsp;&nbsp;• ');
   return html;
 }
 

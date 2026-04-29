@@ -202,10 +202,16 @@ function addMessage(text, type) {
 }
 
 function formatText(text) {
-  let html = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
+  let html = text;
+  html = html.replace(/\n/g, '<br>');
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  html = html.replace(/#{3,}\s*(.+?)(<br>|$)/g, '<strong style="font-size:1.05em;">$1</strong>$2');
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
     '<a href="$2" target="_blank" style="color:#c9a0ff;text-decoration:underline;">$1</a>');
-  html = html.replace(/(^|[^"'])(https?:\/\/[^\s<]+)/g,
+  html = html.replace(/(^|[^"'>])(https?:\/\/[^\s<]+)/g,
     '$1<a href="$2" target="_blank" style="color:#c9a0ff;text-decoration:underline;">$2</a>');
+  html = html.replace(/(<br>)\s*[-•]\s+/g, '$1&nbsp;&nbsp;• ');
   return html;
 }
 </script>
