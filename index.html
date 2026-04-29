@@ -211,7 +211,7 @@ async function doSend(text) {
     const res = await fetch('https://6okrr4nt3c.execute-api.us-west-2.amazonaws.com/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, messages: chatHistory, session_id: sessionId }),
+      body: JSON.stringify({ message: text, messages: chatHistory, session_id: sessionId, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
     });
     const data = await res.json();
     typ.remove();
