@@ -210,6 +210,18 @@ let currentConvoSid = '';
 
 document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 
+function formatMd(text) {
+  let h = text;
+  h = h.replace(/\n/g, '<br>');
+  h = h.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  h = h.replace(/#{3,}\s*(.+?)(<br>|$)/g, '<strong style="font-size:1.05em;">$1</strong>$2');
+  h = h.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" style="color:#DD4470;">$1</a>');
+  h = h.replace(/(^|[^"'>])(https?:\/\/[^\s<]+)/g, '$1<a href="$2" target="_blank" style="color:#DD4470;">$2</a>');
+  h = h.replace(/(<br>)\s*[-•]\s+/g, '$1&nbsp;&nbsp;• ');
+  return h;
+}
+
 async function login() {
   password = document.getElementById('pw').value;
   if (!password) return;
@@ -279,7 +291,7 @@ async function viewConvo(sid) {
     `<strong>IP:</strong> ${data.ip || '?'} <span id="geoDetail"></span><br>` +
     `<strong>Browser:</strong> ${data.user_agent || '?'}`;
   document.getElementById('momoConvoMessages').innerHTML = data.messages.map(m =>
-    `<div class="msg ${m.role}"><div class="msg-role">${m.role === 'user' ? 'Visitor' : 'momoparadise'}</div>${m.content}</div>`
+    `<div class="msg ${m.role}"><div class="msg-role">${m.role === 'user' ? 'Visitor' : 'momoparadise'}</div>${formatMd(m.content)}</div>`
   ).join('');
   if (data.ip && data.ip !== 'unknown') {
     fetch('https://ipapi.co/' + data.ip.split(',')[0].trim() + '/json/').then(r => r.json()).then(geo => {
@@ -382,7 +394,7 @@ async function viewMoroConvo(sid) {
     `<strong>IP:</strong> ${data.ip || '?'} <span id="moroGeoDetail"></span><br>` +
     `<strong>Browser:</strong> ${data.user_agent || '?'}`;
   document.getElementById('moroConvoMessages').innerHTML = data.messages.map(m =>
-    `<div class="msg ${m.role}"><div class="msg-role">${m.role === 'user' ? 'Visitor' : 'Moroscope'}</div>${m.content}</div>`
+    `<div class="msg ${m.role}"><div class="msg-role">${m.role === 'user' ? 'Visitor' : 'Moroscope'}</div>${formatMd(m.content)}</div>`
   ).join('');
   if (data.ip && data.ip !== 'unknown') {
     fetch('https://ipapi.co/' + data.ip.split(',')[0].trim() + '/json/').then(r => r.json()).then(geo => {
