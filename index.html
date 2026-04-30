@@ -282,7 +282,11 @@ function addMessage(text, type) {
     + '</div></div>';
 
   messagesDiv.appendChild(row);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  if (type === 'user' || type === 'typing') {
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  } else {
+    row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
   return row;
 }
 </script>
