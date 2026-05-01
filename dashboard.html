@@ -262,7 +262,7 @@ function renderConvoList(convos) {
     return `<div class="card" onclick="viewConvo('${c.session_id}')">
       <div class="card-top"><span class="card-date">${dateStr}</span><span class="card-badge">${c.message_count} msgs</span>${quizBadge}</div>
       <div class="card-preview">"${c.preview || '...'}"</div>
-      <div class="card-meta">IP: ${c.ip || '?'} <span id="geo-${c.session_id}"></span></div>
+      <div class="card-meta">ID: ${c.session_id.slice(0,8)}… | IP: ${c.ip || '?'} <span id="geo-${c.session_id}"></span></div>
     </div>`;
   }).join('');
   convos.forEach(c => {
@@ -365,7 +365,7 @@ async function loadMoroConvos() {
         <div class="card-top"><span class="card-date">${dateStr}</span><span class="card-badge">${c.message_count} msgs</span>${c.intent ? '<span class="card-badge" style="margin-left:4px;background:' + (c.intent.includes('birth_chart') ? '#f3f0ff;color:#7c4dff' : '#e8f8f0;color:#1DAB87') + ';">' + (c.intent.includes('birth_chart') ? '🪐 Chart' : '🎨 Color') + '</span>' : ''}</div>
         <div class="card-preview">"${c.preview || '...'}"</div>
         ${c.birth_info ? '<div class="card-meta" style="color:#7c4dff;font-weight:500;">📋 ' + c.birth_info + '</div>' : ''}
-        <div class="card-meta">IP: ${c.ip || '?'} <span id="morogeo-${c.session_id}"></span></div>
+        <div class="card-meta">ID: ${c.session_id.slice(0,8)}… | IP: ${c.ip || '?'} <span id="morogeo-${c.session_id}"></span></div>
       </div>`;
     }).join('');
     convos.forEach(c => {
